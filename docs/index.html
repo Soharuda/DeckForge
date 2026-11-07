@@ -203,6 +203,14 @@
   .v-name { font-size: 15px; font-weight: 600; margin: 0 0 3px; overflow-wrap: anywhere; }
   .v-line { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
   .v-line + .v-line { margin-top: 2px; }
+  .v-buy { display: flex; flex-wrap: wrap; gap: 6px; margin: 9px 0 0; }
+  .v-buy a {
+    font-size: 11.5px; color: var(--text); text-decoration: none;
+    background: #1b2436; border: 1px solid var(--line);
+    border-radius: 7px; padding: 5px 9px;
+  }
+  .v-buy a:hover { border-color: #8a6520; color: var(--accent); }
+  .v-buy small { color: var(--faint); font-size: 11px; }
   .v-line b { color: var(--accent); font-weight: 600; }
 </style>
 </head>
@@ -266,6 +274,7 @@
     <p class="v-name" id="v-name"></p>
     <p class="v-line" id="v-type"></p>
     <p class="v-line" id="v-facts"></p>
+    <p class="v-buy" id="v-buy"></p>
   </div>
 </div>
 
@@ -604,9 +613,39 @@
       name: document.getElementById("v-name"),
       type: document.getElementById("v-type"),
       facts: document.getElementById("v-facts"),
+      buy: document.getElementById("v-buy"),
       prev: document.getElementById("v-prev"),
       next: document.getElementById("v-next")
     };
+  }
+
+  /**
+   * Where to buy the card on screen. A card is one item rather than a list, so these are searches
+   * and a one-card Mana Pool cart; the printing rides along in the Mana Pool link.
+   */
+  function paintViewerBuy(els, line, card) {
+    var holder = els.buy;
+    if (!holder) return;
+    holder.innerHTML = "";
+    var name = nameOf(line, card);
+    if (!name) return;
+    var printing = line.set ? (line.set + (line.number ? " " + line.number : "")) : "";
+
+    var manaPoolLine = "1 " + name + (line.set ? " (" + line.set + ")" + (line.number ? " " + line.number : "") : "");
+    var links = [
+      { label: "Mana Pool", title: "one-card cart", href: "https://manapool.com/add-deck?deck=" + encodeURIComponent(btoa(manaPoolLine)) },
+      { label: "TCGplayer", title: printing, href: "https://www.tcgplayer.com/search/magic/product?q=" + encodeURIComponent(name) },
+      { label: "Card Kingdom", title: printing, href: "https://www.cardkingdom.com/catalog/search?search=header&filter%5Bname%5D=" + encodeURIComponent(name) }
+    ];
+
+    links.forEach(function (link) {
+      var a = el("a", "", link.label);
+      a.href = link.href;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.title = link.title ? "Buy at " + link.label + " (" + link.title + ")" : "Buy at " + link.label;
+      holder.appendChild(a);
+    });
   }
 
   function paintViewer() {
@@ -638,6 +677,7 @@
     }
 
     els.count.textContent = (viewerAt + 1) + " / " + display.length;
+    paintViewerBuy(els, line, card);
     els.name.textContent = nameOf(line, card);
 
     if (card) {

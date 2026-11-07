@@ -12,6 +12,11 @@ Deck links are served from this repository by GitHub Pages:
 https://soharuda.github.io/DeckForge/?d=<payload>
 ```
 
+A hundred-card deck is about 620 characters of payload, roughly a tenth of what carrying every
+name and Scryfall id would cost: a card is identified by its printing (set code + collector
+number), and the page looks it up for the name, art, type and price. Nothing but the printings
+travels in the link.
+
 `docs/index.html` is the viewer, and it does one thing: show a deck. It is a single static page
 with no dependencies (no CDN, no framework): the deck rides in the `d` query string as base64url of
 gzipped JSON, the page unpacks it with the browser's own gzip support, then looks the printings up

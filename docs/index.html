@@ -170,16 +170,36 @@
   }
   .v-info { text-align: center; padding-top: 6px; }
   .head-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
-  #vendors { margin-top: 4px; }
-  .vendor-row { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
-  .vendor {
-    display: flex; flex-direction: column; gap: 2px; text-decoration: none;
-    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-    padding: 11px 12px; color: var(--text);
+
+  /* Everything the page can do hangs off one button, so the header stays one line on a phone. */
+  .menu-wrap { position: relative; display: inline-flex; }
+  #menu { gap: 7px; }
+  #menu .caret { font-size: 9px; opacity: 0.75; transform: translateY(1px); }
+  #menu[aria-expanded="true"] { border-color: #8a6520; color: var(--accent); }
+  .menu {
+    position: absolute; top: calc(100% + 6px); right: 0; z-index: 30;
+    min-width: 232px; padding: 6px;
+    background: #141c2b; border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: 0 18px 40px #0007;
+    display: flex; flex-direction: column; gap: 2px;
   }
-  .vendor:hover { border-color: #8a6520; }
-  .vendor b { font-size: 13px; }
-  .vendor small { color: var(--muted); font-size: 11px; line-height: 1.35; }
+  .menu-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    width: 100%; text-align: left; text-decoration: none;
+    background: none; border: 0; border-radius: 7px;
+    padding: 9px 10px; color: var(--text); font-size: 13px; cursor: pointer;
+  }
+  .menu-item:hover, .menu-item:focus-visible { background: #1d283c; color: var(--accent); outline: none; }
+  .menu-item small { color: var(--faint); font-size: 10.5px; white-space: nowrap; }
+  .menu-item.done { color: #7fd6a0; }
+  .menu-sep {
+    margin: 5px 4px 3px; padding-top: 8px; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase;
+  }
+  .menu-note {
+    margin: 2px 4px 4px; padding: 7px 8px; border-radius: 7px;
+    background: #101725; color: var(--muted); font-size: 11px; line-height: 1.45;
+  }
   .v-name { font-size: 15px; font-weight: 600; margin: 0 0 3px; overflow-wrap: anywhere; }
   .v-line { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
   .v-line + .v-line { margin-top: 2px; }
@@ -195,29 +215,34 @@
     <div class="head-row">
       <div class="value" id="deck-value"><span class="spin"></span>reading the deck…</div>
       <div class="head-actions">
-        <button id="copy-list" type="button">Copy list</button>
-        <button id="buy" type="button" hidden>Buy cards</button>
-        <a id="open-app" type="button" hidden>Open in DeckForge</a>
+        <div class="menu-wrap">
+          <button id="menu" type="button" aria-haspopup="true" aria-expanded="false">
+            Options <span class="caret" aria-hidden="true">▼</span>
+          </button>
+          <div class="menu" id="menu-panel" role="menu" aria-label="Deck options" hidden>
+            <button class="menu-item" id="copy-list" type="button" role="menuitem">
+              Copy list <small id="copy-note"></small>
+            </button>
+            <a class="menu-item" id="open-app" role="menuitem" hidden>
+              Open in DeckForge <small>Android</small>
+            </a>
+            <div class="menu-sep" id="menu-buy-sep" hidden>Buy the deck</div>
+            <a class="menu-item" data-vendor="manapool" target="_blank" rel="noopener" hidden>
+              Mana Pool <small>list loaded</small>
+            </a>
+            <a class="menu-item" data-vendor="tcgplayer" href="https://www.tcgplayer.com/massentry?productline=Magic" target="_blank" rel="noopener" hidden>
+              TCGplayer <small>copies list</small>
+            </a>
+            <a class="menu-item" data-vendor="cardkingdom" href="https://www.cardkingdom.com/builder" target="_blank" rel="noopener" hidden>
+              Card Kingdom <small>copies list</small>
+            </a>
+            <div class="menu-note" id="menu-note" hidden></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </header>
-
-<section class="wrap" id="vendors" hidden>
-  <h2>Buy this deck <span id="vendors-note"></span></h2>
-  <div class="vendor-row">
-    <a class="vendor" data-vendor="manapool" href="#" target="_blank" rel="noopener">
-      <b>Mana Pool</b><small>opens with the whole list loaded</small>
-    </a>
-    <a class="vendor" data-vendor="tcgplayer" href="https://www.tcgplayer.com/massentry?productline=Magic" target="_blank" rel="noopener">
-      <b>TCGplayer</b><small>Mass Entry, list on your clipboard</small>
-    </a>
-    <a class="vendor" data-vendor="cardkingdom" href="https://www.cardkingdom.com/builder" target="_blank" rel="noopener">
-      <b>Card Kingdom</b><small>deck builder, list on your clipboard</small>
-    </a>
-  </div>
-  <p class="note">Prices here come from Scryfall. The stores price their own stock, so expect the total to move.</p>
-</section>
 
 <main class="wrap" id="deck">
   <p class="note"><span class="spin"></span>Reading the deck…</p>
@@ -760,83 +785,73 @@
     return "https://manapool.com/add-deck?deck=" + encodeURIComponent(btoa(binary));
   }
 
-  function wireBuy() {
-    var button = document.getElementById("buy");
-    if (!button) return;
-    button.hidden = false;
-    var panel = document.getElementById("vendors");
+  // ---- the options menu: every action the page offers lives behind one button --------------
+  var MENU_VENDORS = ["manapool", "tcgplayer", "cardkingdom"];
 
-    button.addEventListener("click", function () {
-      var showing = panel.hidden;
-      panel.hidden = !showing;
-      button.textContent = showing ? "Hide buy options" : "Buy cards";
-      if (showing) {
-        document.querySelector('[data-vendor="manapool"]').href = manaPoolUrl();
-        document.getElementById("vendors-note").textContent = deck.lines.length + " cards";
-        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
+  function wireMenu() {
+    var button = document.getElementById("menu");
+    var panel = document.getElementById("menu-panel");
+    if (!button || !panel) return;
+
+    function close() {
+      panel.hidden = true;
+      button.setAttribute("aria-expanded", "false");
+    }
+
+    button.addEventListener("click", function (event) {
+      event.stopPropagation();
+      var opening = panel.hidden;
+      panel.hidden = !opening;
+      button.setAttribute("aria-expanded", opening ? "true" : "false");
+      if (!opening) return;
+      document.getElementById("menu-note").hidden = true;
+      var manapool = panel.querySelector('[data-vendor="manapool"]');
+      if (manapool && deck && deck.lines.length) manapool.href = manaPoolUrl();
+    });
+    document.addEventListener("click", function (event) {
+      if (!panel.hidden && !panel.contains(event.target)) close();
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !panel.hidden) { close(); button.focus(); }
     });
 
-    Array.prototype.forEach.call(panel.querySelectorAll(".vendor"), function (link) {
-      if (link.getAttribute("data-vendor") === "manapool") return; // already carries the list
+    document.getElementById("copy-list").addEventListener("click", copyList);
+
+    // TCGplayer and Card Kingdom read a paste, not an address, so the list rides out on the
+    // clipboard. Mana Pool carries the whole list in the link and needs no help.
+    Array.prototype.forEach.call(panel.querySelectorAll("[data-vendor]"), function (link) {
       link.addEventListener("click", function () {
-        // The other two read a paste, not an address, so the list goes to the clipboard first.
-        var text = buyList(link.getAttribute("data-vendor") === "tcgplayer" ? "tcg" : "plain");
-        if (navigator.clipboard) navigator.clipboard.writeText(text);
-        var note = document.getElementById("vendors-note");
-        note.textContent = "list copied, paste it in";
-        setTimeout(function () {
-          note.textContent = deck.lines.length + " cards";
-        }, 4000);
+        if (link.getAttribute("data-vendor") !== "manapool" && navigator.clipboard) {
+          var style = link.getAttribute("data-vendor") === "tcgplayer" ? "tcg" : "plain";
+          navigator.clipboard.writeText(buyList(style));
+        }
+        setTimeout(close, 40);
       });
     });
-  }
 
-  // ------------------------------------------------------- handing the deck back
-
-  /**
-   * The payload this page was opened with. A page file carries its deck in a script instead, so
-   * there it is packed again with the browser's own gzip, which keeps the import working offline
-   * as well as a link does.
-   */
-  function payloadForImport() {
-    if (payloadInAddress) return Promise.resolve(payloadInAddress);
-    if (!window.DECKFORGE_SEED) return Promise.resolve("");
-    if (typeof CompressionStream === "undefined") return Promise.resolve("");
-    var bytes = new TextEncoder().encode(JSON.stringify(window.DECKFORGE_SEED));
-    var stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
-    return new Response(stream).arrayBuffer().then(function (buffer) {
-      var view = new Uint8Array(buffer), binary = "";
-      for (var i = 0; i < view.length; i++) binary += String.fromCharCode(view[i]);
-      return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    var openApp = document.getElementById("open-app");
+    openApp.addEventListener("click", function (event) {
+      if (/Android/i.test(navigator.userAgent)) { close(); return; } // the intent address does it
+      event.preventDefault();
+      var note = document.getElementById("menu-note");
+      note.hidden = false;
+      note.textContent = "Open this on an Android phone with DeckForge installed and the deck goes straight in.";
     });
   }
 
-  /**
-   * An intent:// address is the only shape a browser will hand to an installed app. The fallback
-   * is this site's own import page, so a phone without DeckForge lands somewhere that explains
-   * itself instead of on a dead link.
-   */
-  function importAddress(payload) {
-    var fallback = new URL("import/", window.location.href).href;
-    if (payload) fallback += "?d=" + payload;
-    return "intent://import?d=" + payload +
-      "#Intent;scheme=deckforge;package=com.soharuda.deckforge;S.browser_fallback_url=" +
-      encodeURIComponent(fallback) + ";end";
-  }
-
-  function wireImportButton() {
-    var button = document.getElementById("open-app");
-    if (!button) return;
+  // The deck-dependent items show up only once there is a deck to act on. This runs after the
+  // payload is read: wiring it at load left the app link hidden for good, because the payload
+  // was still null at that moment.
+  function fillMenu() {
     payloadForImport().then(function (payload) {
       if (!payload) return;
-      button.href = importAddress(payload);
-      button.hidden = false;
-      button.addEventListener("click", function (event) {
-        if (/Android/i.test(navigator.userAgent)) return; // the intent address does the work
-        event.preventDefault();
-        button.textContent = "Opens in the DeckForge app";
-        setTimeout(function () { button.textContent = "Open in DeckForge"; }, 2200);
+      var openApp = document.getElementById("open-app");
+      openApp.href = importAddress(payload);
+      openApp.hidden = false;
+      document.getElementById("menu-buy-sep").hidden = false;
+      MENU_VENDORS.forEach(function (vendor) {
+        var link = document.querySelector('[data-vendor="' + vendor + '"]');
+        if (link) link.hidden = false;
       });
     });
   }
@@ -849,15 +864,16 @@
       return line.quantity + " " + nameOf(line, cardFor(line));
     });
     var text = deck.name + "\n\n" + lines.join("\n");
-    var button = document.getElementById("copy-list");
+    var note = document.getElementById("copy-note");
     function done(label) {
-      button.textContent = label;
-      setTimeout(function () { button.textContent = "Copy list"; }, 1400);
+      if (!note) return;
+      note.textContent = label;
+      setTimeout(function () { note.textContent = ""; }, 1500);
     }
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(function () { done("Copied"); }, function () { done("Copy failed"); });
+      navigator.clipboard.writeText(text).then(function () { done("copied"); }, function () { done("failed"); });
     } else {
-      done("Copy failed");
+      done("failed");
     }
   }
 
@@ -886,21 +902,19 @@
     });
   }
 
-  document.getElementById("copy-list").addEventListener("click", copyList);
   // An old page left "art on" behind in storage; nothing reads it now, so clear it on sight.
   try { localStorage.removeItem("deckforge.art"); } catch (e) {}
   wireViewer();
-
-  wireImportButton();
+  wireMenu();
 
   readPayload().then(function (seed) {
     deck = normalise(seed);
+    fillMenu();
     try {
       render();
     } catch (error) {
       plainList("Showing the list from the link alone (" + (error && error.message ? error.message : "render failed") + ").");
     }
-    wireBuy();
     return fetchCards(deck.lines).then(function (cards) {
       cards.forEach(function (card) {
         if (!card || !card.id) return;

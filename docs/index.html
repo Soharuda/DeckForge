@@ -327,10 +327,12 @@
     };
   }
 
-  function buildSection(key, entries) {
+  function buildSection(key, entries, pending) {
     var heading = document.createElement("h2");
     var count = entries.reduce(function (total, entry) { return total + entry.line.quantity; }, 0);
-    var label = SECTIONS.filter(function (s) { return s.key === key; })[0].label;
+    var label = pending && key === "other"
+      ? "Cards"
+      : SECTIONS.filter(function (s) { return s.key === key; })[0].label;
     heading.textContent = label;
     var tally = document.createElement("span");
     tally.textContent = count;
@@ -403,7 +405,7 @@
     return fragment;
   }
 
-  function render(lookupFailed) {
+  function render(lookedUp) {
     if (!deck) return;
     var deckEl = document.getElementById("deck");
     deckEl.innerHTML = "";
@@ -437,7 +439,7 @@
         if (ma !== mb) return ma - mb;
         return nameOf(a.line, a.card).localeCompare(nameOf(b.line, b.card));
       });
-      document.getElementById("deck").appendChild(buildSection(section.key, entries));
+      document.getElementById("deck").appendChild(buildSection(section.key, entries, !lookedUp));
     });
 
     var value = 0;
@@ -448,10 +450,10 @@
       if (price !== null) { value += price * line.quantity; priced += line.quantity; }
     });
     var valueEl = document.getElementById("deck-value");
-    if (priced === 0) {
-      valueEl.innerHTML = lookupFailed
-        ? "<b>—</b> card details unavailable"
-        : "<b>—</b> no prices available";
+    if (!lookedUp) {
+      valueEl.innerHTML = "<span class=\"spinner\"></span>pricing the deck…";
+    } else if (priced === 0) {
+      valueEl.innerHTML = "<b>—</b> Scryfall did not answer";
     } else {
       valueEl.innerHTML = "<b>" + money(value) + "</b> market value" +
         (priced < total ? " (" + (total - priced) + " unpriced)" : "");
@@ -500,10 +502,10 @@
 
   readPayload().then(function (seed) {
     deck = normalise(seed);
-    render(); // first paint from the link alone, so a slow network still shows the list
+    render(false); // first paint from the link alone, so a slow network still shows the list
     return fetchCards(deck.lines).then(function (cards) {
       cards.forEach(function (card) { if (card && card.id) info[card.id] = card; });
-      render(cards.length === 0 && deck.lines.length > 0);
+      render(true);
     });
   }).catch(function (error) {
     if (error && error.message === "no-deck") {

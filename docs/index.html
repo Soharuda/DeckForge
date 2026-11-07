@@ -122,7 +122,7 @@
     background: rgba(6, 9, 15, 0.965);
     padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
   }
-  #viewer.open { display: flex; flex-direction: column; }
+  #viewer.open { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
   .v-top {
     display: flex; align-items: center; justify-content: space-between;
     gap: 10px; color: var(--muted); font-size: 12px;
@@ -133,9 +133,9 @@
     cursor: pointer; flex: 0 0 auto;
   }
   .v-stage {
-    flex: 1 1 auto; min-height: 0;
+    min-height: 0; overflow: hidden;
     display: flex; align-items: center; justify-content: center;
-    gap: 8px; padding: 8px 0;
+    gap: 6px; padding: 8px 0;
     touch-action: pan-y;
   }
   .v-nav {
@@ -145,9 +145,15 @@
   }
   .v-nav:disabled { opacity: 0.25; cursor: default; }
   .v-card {
+    display: block;
+    width: auto; height: auto;
     max-width: 100%; max-height: 100%;
     border-radius: 12px; box-shadow: 0 12px 40px #000a;
-    object-fit: contain; background: #131a29;
+    background: #131a29;
+  }
+  #v-picture {
+    flex: 1 1 auto; min-width: 0; min-height: 0; height: 100%;
+    display: flex; align-items: center; justify-content: center;
   }
   .v-blank {
     width: min(78vw, 320px); aspect-ratio: 488 / 680;
@@ -155,7 +161,7 @@
     border: 1px dashed var(--line); border-radius: 12px;
     color: var(--faint); font-size: 12px; text-align: center; padding: 16px;
   }
-  .v-info { flex: 0 0 auto; text-align: center; padding-top: 6px; }
+  .v-info { text-align: center; padding-top: 6px; }
   .v-name { font-size: 15px; font-weight: 600; margin: 0 0 3px; overflow-wrap: anywhere; }
   .v-line { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
   .v-line + .v-line { margin-top: 2px; }
@@ -190,7 +196,7 @@
   </div>
   <div class="v-stage" id="v-stage">
     <button class="v-nav" id="v-prev" type="button" aria-label="Previous card">‹</button>
-    <div id="v-picture" style="display:flex;align-items:center;justify-content:center;min-width:0;max-height:100%"></div>
+    <div id="v-picture"></div>
     <button class="v-nav" id="v-next" type="button" aria-label="Next card">›</button>
   </div>
   <div class="v-info">
@@ -528,9 +534,18 @@
 
     els.picture.innerHTML = "";
     if (pic && (pic.normal || pic.large || pic.art_crop || pic.small)) {
+      var sources = [pic.normal, pic.large, pic.art_crop, pic.small].filter(Boolean);
       var img = el("img", "v-card");
       img.alt = nameOf(line, card);
-      img.src = pic.normal || pic.large || pic.art_crop || pic.small;
+      img.referrerPolicy = "no-referrer";
+      img.decoding = "async";
+      var attempt = 0;
+      img.addEventListener("error", function () {
+        attempt += 1;
+        if (attempt < sources.length) img.src = sources[attempt];
+        else els.picture.innerHTML = '<div class="v-blank">Card picture did not load</div>';
+      });
+      img.src = sources[0];
       els.picture.appendChild(img);
     } else {
       var blank = el("div", "v-blank", card ? "No picture for this printing" : "No card data from Scryfall");

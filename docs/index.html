@@ -381,43 +381,19 @@
 
   // ---------------------------------------------------------------- list
 
-  // Art is fetched only as a row comes near the screen: a hundred full-size crops decoded at once
-  // is what makes a phone browser give up and paint the page black.
-  var artWatcher = null;
-  function watchArt() {
-    if (typeof IntersectionObserver === "undefined") {
-      return function (img, url) { img.src = url; };
-    }
-    if (!artWatcher) {
-      artWatcher = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
-          var img = entry.target;
-          if (img.dataset.src) {
-            img.src = img.dataset.src;
-            img.removeAttribute("data-src");
-          }
-          artWatcher.unobserve(img);
-        });
-      }, { rootMargin: "400px 0px" });
-    }
-    return function (img, url) {
-      img.dataset.src = url;
-      artWatcher.observe(img);
-    };
-  }
-  var lazyArt = watchArt();
-
+  // Art is left to the browser: `loading="lazy"` keeps rows that are off screen from being
+  // fetched or decoded, which is what a hundred full-size art crops would otherwise do at once.
   function artThumb(line) {
     var pic = pictures(cardFor(line));
-    var url = pic && pic.art_crop;
+    var url = pic && (pic.art_crop || pic.small || pic.normal);
     var img = el("img", "thumb");
     img.alt = "";
     img.width = 46;
     img.height = 34;
     img.decoding = "async";
     img.loading = "lazy";
-    if (url) lazyArt(img, url);
+    img.referrerPolicy = "no-referrer";
+    if (url) img.src = url;
     return img;
   }
 

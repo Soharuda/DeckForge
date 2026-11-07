@@ -16,7 +16,8 @@ https://soharuda.github.io/DeckForge/?d=<payload>
 with no dependencies (no CDN, no framework): the deck rides in the `d` query string as base64url of
 gzipped JSON, the page unpacks it with the browser's own gzip support, then looks the printings up
 on Scryfall for names, art, mana costs and prices. Cards are grouped by type and sorted by mana
-value. Nothing is stored server side, and no collection data is embedded in the page. The same file
+value, each row shows the art, and tapping a row opens the card full size: swipe (or arrow keys) to
+walk the whole deck in the same order the list is drawn. Nothing is stored server side, and no collection data is embedded in the page. The same file
 is bundled in the app as `assets/vault-viewer.html`, so a shared page file opens on the same view. The payload looks like this:
 
 ```json

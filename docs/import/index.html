@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open this deck in DeckForge</title>
+<style>
+  :root { color-scheme: dark; --bg:#0f1115; --panel:#171a21; --line:#272c36; --text:#e9ecf2; --muted:#98a2b3; --accent:#7ea2ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text);
+         font:15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         display:flex; min-height:100vh; align-items:center; justify-content:center; padding:24px; }
+  .card { width:100%; max-width:430px; background:var(--panel); border:1px solid var(--line);
+          border-radius:16px; padding:22px; }
+  h1 { font-size:17px; margin:0 0 6px; }
+  p { color:var(--muted); margin:0 0 16px; font-size:13px; }
+  a.button { display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none;
+             background:var(--accent); color:#0b1020; font-weight:700; padding:13px 16px;
+             border-radius:11px; font-size:15px; }
+  a.button.secondary { background:transparent; color:var(--text); border:1px solid var(--line); margin-top:10px; }
+  code { color:var(--text); font-size:12px; overflow-wrap:anywhere; }
+  .hint { margin-top:14px; font-size:12px; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Open this deck in DeckForge</h1>
+  <p id="sub">Tapping the button hands the deck to the DeckForge app, which files it into your decks.</p>
+  <a class="button" id="open" href="#">Open in DeckForge</a>
+  <a class="button secondary" id="back" href="../" hidden>View the deck in the browser</a>
+  <p class="hint" id="hint">DeckForge not installed? Nothing was lost: the deck is still in the link
+    you came from, and this page shows it too.</p>
+</div>
+<script>
+  (function () {
+    var payload = new URLSearchParams(window.location.search).get("d") || "";
+    var hash = window.location.hash || "";
+    var at = hash.indexOf("d=");
+    if (!payload && at >= 0) payload = hash.slice(at + 2).split("&")[0];
+
+    var open = document.getElementById("open");
+    var back = document.getElementById("back");
+    if (payload) {
+      open.href = "intent://import?d=" + payload +
+        "#Intent;scheme=deckforge;package=com.soharuda.deckforge;end";
+      back.href = "../?d=" + payload;
+      back.hidden = false;
+    } else {
+      open.href = "#";
+      document.getElementById("sub").textContent =
+        "This page was opened without a deck in it. Go back to the deck link you were sent.";
+    }
+
+    // Not a phone with the app on it: say so plainly rather than letting a dead link look broken.
+    if (!/Android/i.test(navigator.userAgent)) {
+      open.addEventListener("click", function (event) {
+        event.preventDefault();
+        document.getElementById("sub").textContent =
+          "DeckForge is an Android app. Open this page on your phone to import the deck, or read it here in the browser.";
+      });
+    }
+  })();
+</script>
+</body>
+</html>

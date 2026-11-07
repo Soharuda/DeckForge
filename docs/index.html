@@ -237,24 +237,39 @@
     });
   }
 
+  function wait(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
+  // Scryfall wants one request at a time: two in flight at once comes back 429 and the page would
+  // quietly lose every price. So the batches go one after another, and a 429 waits and tries again.
+  function postBatch(batch, attempt) {
+    return fetch("https://api.scryfall.com/cards/collection", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifiers: identifiersFor(batch) })
+    }).then(function (response) {
+      if (response.status === 429 && attempt < 3) {
+        return wait(700 * (attempt + 1)).then(function () { return postBatch(batch, attempt + 1); });
+      }
+      if (!response.ok) throw new Error("Scryfall answered " + response.status);
+      return response.json();
+    }).then(function (body) {
+      return (body && body.data) || [];
+    });
+  }
+
   function fetchCards(lines) {
     var batches = [];
     for (var i = 0; i < lines.length; i += 75) batches.push(lines.slice(i, i + 75));
-    return Promise.all(batches.map(function (batch) {
-      return fetch("https://api.scryfall.com/cards/collection", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifiers: identifiersFor(batch) })
-      })
-        .then(function (response) {
-          if (!response.ok) throw new Error("Scryfall answered " + response.status);
-          return response.json();
-        })
-        .then(function (body) { return (body && body.data) || []; })
-        .catch(function () { return []; });
-    })).then(function (groups) {
-      return groups.reduce(function (all, group) { return all.concat(group); }, []);
-    });
+    return batches.reduce(function (chain, batch) {
+      return chain.then(function (all) {
+        return postBatch(batch, 0)
+          .then(function (cards) { return all.concat(cards); })
+          .catch(function () { return all; })
+          .then(function (acc) { return wait(120).then(function () { return acc; }); });
+      });
+    }, Promise.resolve([]));
   }
 
   function readPayload() {
@@ -388,7 +403,7 @@
     return fragment;
   }
 
-  function render() {
+  function render(lookupFailed) {
     if (!deck) return;
     var deckEl = document.getElementById("deck");
     deckEl.innerHTML = "";
@@ -434,7 +449,9 @@
     });
     var valueEl = document.getElementById("deck-value");
     if (priced === 0) {
-      valueEl.innerHTML = "<b>—</b> no prices available";
+      valueEl.innerHTML = lookupFailed
+        ? "<b>—</b> card details unavailable"
+        : "<b>—</b> no prices available";
     } else {
       valueEl.innerHTML = "<b>" + money(value) + "</b> market value" +
         (priced < total ? " (" + (total - priced) + " unpriced)" : "");
@@ -486,7 +503,7 @@
     render(); // first paint from the link alone, so a slow network still shows the list
     return fetchCards(deck.lines).then(function (cards) {
       cards.forEach(function (card) { if (card && card.id) info[card.id] = card; });
-      render();
+      render(cards.length === 0 && deck.lines.length > 0);
     });
   }).catch(function (error) {
     if (error && error.message === "no-deck") {

@@ -1,1572 +1,502 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeckForge</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js CDN -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts for MTG aesthetic -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;750;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .font-mtg { font-family: 'Cinzel', serif; }
-        [x-cloak] { display: none !important; }
-        
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0b0f19; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeckForge</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0b0f19;
+    --panel: #121826;
+    --line: #23304a;
+    --text: #e8edf7;
+    --muted: #93a1bd;
+    --accent: #f5b544;
+    --accent-dim: #8a6520;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding-bottom: 48px;
+  }
+  a { color: var(--accent); }
 
-        @keyframes foil-sweep {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-        .foil-shimmer {
-            background: linear-gradient(
-                110deg, 
-                rgba(255, 255, 255, 0) 40%, 
-                rgba(245, 158, 11, 0.3) 50%, 
-                rgba(59, 130, 246, 0.3) 55%, 
-                rgba(255, 255, 255, 0) 60%
-            );
-            background-size: 200% 100%;
-            animation: foil-sweep 4s infinite linear;
-        }
-        .foil-border {
-            border-color: rgba(245, 158, 11, 0.7) !important;
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
-        }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: linear-gradient(180deg, #131a29 0%, #101725 100%);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 16px 12px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .brand b { color: var(--accent); font-weight: 700; }
+  h1 {
+    margin: 6px 0 2px;
+    font-size: 21px;
+    line-height: 1.2;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .meta { color: var(--muted); font-size: 13px; }
+  .meta em { color: var(--text); font-style: normal; }
+  .head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .value { font-size: 13px; color: var(--muted); }
+  .value b { color: var(--accent); font-weight: 700; font-size: 15px; }
+  .actions { display: flex; gap: 8px; }
+  button {
+    background: #1b2436;
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 7px 11px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--accent-dim); color: var(--accent); }
 
-        .perspective-1000 { perspective: 1000px; }
-        .transform-style-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
-        .rotate-y-180 { transform: rotateY(180deg); }
-        .eye-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease; }
-    </style>
+  main { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+  h2 {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 22px 0 8px;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 6px;
+  }
+  h2 span { font-weight: 400; letter-spacing: 0; text-transform: none; color: #6f7d99; }
+
+  .card {
+    display: grid;
+    grid-template-columns: 34px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid #171f2e;
+  }
+  .qty { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13px; text-align: right; }
+  .name { display: flex; align-items: center; gap: 7px; min-width: 0; }
+  .name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .foil { color: #7fb2ff; font-size: 11px; border: 1px solid #2b4a7a; border-radius: 4px; padding: 0 3px; }
+  .right { text-align: right; color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .cost { color: #b9c6dd; font-size: 12px; letter-spacing: 0.02em; }
+  .set { color: #6f7d99; font-size: 11px; }
+  .art {
+    display: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 5px;
+    object-fit: cover;
+    object-position: center 22%;
+    background: #1a2233;
+  }
+  body.art .art { display: block; }
+  body.art .card { grid-template-columns: 26px 34px 1fr auto; }
+  .empty, .note {
+    margin: 18px 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .note b { color: var(--text); }
+  footer {
+    max-width: 760px;
+    margin: 26px auto 0;
+    padding: 0 16px;
+    color: #55637d;
+    font-size: 12px;
+  }
+  .spinner {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border: 2px solid var(--line);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: -1px;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
 </head>
-<body class="bg-[#07090e] text-slate-100 antialiased min-h-screen selection:bg-amber-500 selection:text-slate-950" 
-      x-data="collectionApp()" @keydown.left.window="prevCard()" @keydown.right.window="nextCard()">
-
-    <!-- Header / Navigation -->
-    <header class="bg-[#0b0f19] border-b border-amber-500/20 sticky top-0 z-30 shadow-xl backdrop-blur-md bg-opacity-95">
-        <div class="max-w-7xl mx-auto px-4 py-3.5 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-3">
-            <div class="flex items-center gap-3">
-                <div class="p-2.5 bg-amber-500/10 border border-amber-500/40 rounded-xl text-amber-400 shadow-inner">
-                    <i class="fa-solid fa-scroll text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold tracking-wider text-amber-100 font-mtg flex items-center gap-2">
-                        DECKFORGE <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-medium font-sans">DeckForge</span>
-                    </h1>
-                    <p class="text-xs text-slate-400 font-sans">Paste a link · cards, prices and mana analytics, fetched on the spot</p>
-                </div>
-            </div>
-
-            <!-- Upload & Actions -->
-            <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                <label class="cursor-pointer bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs shadow-lg shadow-amber-600/20 transition flex items-center gap-2">
-                    <i class="fa-solid fa-file-arrow-up"></i>
-                    <span>Upload a CSV file</span>
-                    <input type="file" accept=".csv" class="hidden" @change="handleFileUpload($event)">
-                </label>
-            </div>
-        </div>
-    </header>
-
-    <!-- Progress Bar Modal / Banner for Client-Side Scryfall Data Mining -->
-    <template x-if="isEnriching">
-        <div class="bg-amber-600/20 border-b border-amber-500/40 text-amber-200 px-4 py-3 text-xs shadow-inner">
-            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5 font-medium">
-                    <i class="fa-solid fa-spinner fa-spin text-amber-400"></i>
-                    <span x-text="enrichStatusText">Mining card data from Scryfall API...</span>
-                </div>
-                <div class="w-full sm:w-64 bg-slate-900 rounded-full h-2.5 overflow-hidden border border-amber-500/30">
-                    <div class="bg-amber-500 h-2.5 transition-all duration-300" :style="'width: ' + enrichProgress + '%'"></div>
-                </div>
-            </div>
-        </div>
-    </template>
-
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 space-y-6">
-
-
-        <!-- SOMEBODY'S DECK: the whole point of a share link -->
-        <section x-show="sharedDeck" x-cloak class="bg-gradient-to-r from-amber-500/10 via-[#0b0f19] to-[#0b0f19] border border-amber-500/30 rounded-2xl shadow-xl overflow-hidden">
-            <div class="p-4 flex flex-wrap items-center gap-4">
-                <div class="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-300 shadow-inner shrink-0">
-                    <i class="fa-solid fa-share-nodes"></i>
-                </div>
-                <div class="min-w-0 flex-1">
-                    <p class="text-[11px] uppercase tracking-widest text-amber-400/80 font-semibold">Shared deck</p>
-                    <h2 class="text-lg font-bold text-amber-50 font-mtg truncate" x-text="sharedDeck && sharedDeck.name"></h2>
-                    <p class="text-xs text-slate-400 mt-0.5">
-                        <span x-text="sharedDeck && (sharedDeck.formatLabel || sharedDeck.format)"></span>
-                        <span x-text="sharedDeck ? ' · ' + sharedDeck.count + ' cards' : ''"></span>
-                        <span x-text="sharedDeck && sharedDeck.commander ? ' · commander ' + sharedDeck.commander : ''"></span>
-                        <span x-text="sharedDeck && sharedDeck.commander2 ? ' + ' + sharedDeck.commander2 : ''"></span>
-                    </p>
-                </div>
-                <div class="text-right shrink-0">
-                    <p class="text-[11px] uppercase tracking-widest text-slate-500 font-semibold">Market value</p>
-                    <p class="text-lg font-bold text-amber-300" x-text="formatCurrency(globalTotalValue)"></p>
-                </div>
-            </div>
-        </section>
-
-        <!-- SOURCE BAR: this file carries no collection. It is handed a link and fetches the rest itself. -->
-        <section x-show="!sharedDeck" class="bg-[#0b0f19] border border-amber-500/20 rounded-2xl shadow-xl overflow-hidden">
-            <div class="p-4 space-y-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
-                        <i class="fa-solid fa-link text-sm"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-amber-100 font-mtg tracking-wide">Collection Link</h3>
-                        <p class="text-xs text-slate-400">Paste a CSV link and this page pulls the cards, prices them on Scryfall and fills the grimoire.</p>
-                    </div>
-                </div>
-
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <input x-model="linkInput" @keydown.enter="loadFromLink()" :disabled="isLoading"
-                           type="url" inputmode="url" autocomplete="off" spellcheck="false"
-                           placeholder="https://docs.google.com/spreadsheets/d/.../edit  ·  https://raw.githubusercontent.com/.../collection.csv  ·  https://dropbox.com/s/.../collection.csv?dl=0"
-                           class="flex-1 bg-[#07090e] border border-amber-500/20 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-amber-500 transition font-mono">
-                    <div class="flex gap-2">
-                        <button @click="loadFromLink()" :disabled="isLoading || !linkInput.trim()"
-                                class="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:from-slate-700 disabled:to-slate-700 disabled:text-slate-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs shadow-lg shadow-amber-600/20 transition flex items-center gap-2 whitespace-nowrap">
-                            <i class="fa-solid" :class="isLoading ? 'fa-spinner fa-spin' : 'fa-cloud-arrow-down'"></i>
-                            <span x-text="isLoading ? 'Fetching…' : 'Load link'"></span>
-                        </button>
-                        <button @click="reloadSource()" x-show="lastLink" title="Reload the last link"
-                                class="bg-[#121826] hover:bg-[#1a2333] text-slate-300 px-3 py-2.5 rounded-xl text-xs transition border border-slate-700 hover:border-amber-500/40">
-                            <i class="fa-solid fa-rotate-right"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap items-start gap-x-4 gap-y-1 text-[11px] leading-relaxed">
-                    <span x-show="loadError" class="text-red-400 flex items-start gap-1.5">
-                        <i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span x-text="loadError"></span>
-                    </span>
-                    <span x-show="!loadError && sourceLabel" class="text-emerald-400 flex items-center gap-1.5">
-                        <i class="fa-solid fa-circle-check"></i><span x-text="sourceLabel"></span>
-                    </span>
-                    <span x-show="!loadError && cards.length > 0 && unpricedCount > 0" class="text-amber-300/80 flex items-center gap-1.5">
-                        <i class="fa-solid fa-circle-info"></i><span x-text="unpricedCount + ' lines came back with no Scryfall price; those fall back to what you paid.'"></span>
-                    </span>
-                    <span x-show="!loadError && !sourceLabel" class="text-slate-500">
-                        A direct CSV works best: Google Sheets (Share → Publish to web → CSV), a GitHub Raw link, Dropbox with <code class="text-amber-300/80">?dl=1</code>, or any public URL that serves the file itself.
-                        Hosts that block cross-site reads will be reported here, and the upload button in the header still takes the file directly.
-                    </span>
-                </div>
-            </div>
-        </section>
-
-        <!-- COLLAPSIBLE DETAILED STATS (GLOBAL - UNAFFECTED BY FILTERS) -->
-        <div x-show="cards.length > 0" class="bg-[#0b0f19] border border-amber-500/20 rounded-2xl shadow-xl overflow-hidden transition-all duration-300">
-            <div @click="isStatsOpen = !isStatsOpen" class="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-900/60 transition">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
-                        <i class="fa-solid fa-chart-pie text-sm"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-amber-100 font-mtg tracking-wide flex items-center gap-2">
-                            Collection Analytics & Mana Breakdown
-                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-medium font-sans" x-text="formatCurrency(globalTotalValue)"></span>
-                        </h3>
-                        <p class="text-xs text-slate-400">Overall collection valuation, color stats & rarity analysis</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="text-xs text-amber-400/80 hidden sm:block font-medium" x-text="isStatsOpen ? 'Hide stats' : 'Show stats'"></div>
-                    <i :class="isStatsOpen ? 'rotate-180' : ''" class="fa-solid fa-chevron-down text-amber-400/80 transition-transform duration-300"></i>
-                </div>
-            </div>
-
-            <div x-show="isStatsOpen" 
-                 x-transition:enter="transition ease-out duration-250"
-                 x-transition:enter-start="opacity-0 -translate-y-2"
-                 x-transition:enter-end="opacity-100 translate-y-0"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100 translate-y-0"
-                 x-transition:leave-end="opacity-0 -translate-y-2"
-                 class="px-4 pb-4 pt-1 border-t border-amber-500/10 space-y-4">
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-3">
-                    <div class="bg-[#07090e] border border-amber-500/20 rounded-xl p-3.5 shadow-inner flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                <span>Portfolio Value</span>
-                                <i class="fa-solid fa-vault text-amber-400"></i>
-                            </div>
-                            <h3 class="text-xl font-extrabold text-amber-400 font-mono mt-1" x-text="formatCurrency(globalTotalValue)">$0.00</h3>
-                        </div>
-                        <div class="mt-3 pt-2.5 border-t border-slate-800 grid grid-cols-2 gap-2 text-[11px]">
-                            <div>
-                                <span class="text-slate-500 block">Normal Value</span>
-                                <span class="font-mono font-semibold text-slate-200" x-text="formatCurrency(globalNormalValue)">$0.00</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-500 block">Foil Value</span>
-                                <span class="font-mono font-semibold text-amber-300" x-text="formatCurrency(globalFoilValue)">$0.00</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-[#07090e] border border-amber-500/20 rounded-xl p-3.5 shadow-inner flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                <span>Total Inventory</span>
-                                <i class="fa-solid fa-clone text-emerald-400"></i>
-                            </div>
-                            <h3 class="text-xl font-extrabold text-emerald-400 font-mono mt-1" x-text="globalTotalQuantity.toLocaleString()">0</h3>
-                        </div>
-                        <div class="mt-3 pt-2.5 border-t border-slate-800 grid grid-cols-2 gap-2 text-[11px]">
-                            <div>
-                                <span class="text-slate-500 block">Unique Cards</span>
-                                <span class="font-mono font-semibold text-slate-200" x-text="globalUniqueCardsCount.toLocaleString()">0</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-500 block">Avg Card Price</span>
-                                <span class="font-mono font-semibold text-purple-400" x-text="formatCurrency(globalAvgCardValue)">$0.00</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-[#07090e] border border-amber-500/20 rounded-xl p-3.5 shadow-inner flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                <span>Rarity Breakdown</span>
-                                <i class="fa-solid fa-gem text-blue-400"></i>
-                            </div>
-                            <div class="grid grid-cols-5 gap-1 mt-2 text-center">
-                                <div class="bg-[#0b0f19] p-1 rounded border border-amber-500/20">
-                                    <span class="text-[8px] text-amber-400 block font-bold">MYTH</span>
-                                    <span class="text-[11px] font-mono font-bold text-white" x-text="globalRarityCounts.mythic">0</span>
-                                </div>
-                                <div class="bg-[#0b0f19] p-1 rounded border border-amber-500/20">
-                                    <span class="text-[8px] text-orange-400 block font-bold">RARE</span>
-                                    <span class="text-[11px] font-mono font-bold text-white" x-text="globalRarityCounts.rare">0</span>
-                                </div>
-                                <div class="bg-[#0b0f19] p-1 rounded border border-amber-500/20">
-                                    <span class="text-[8px] text-blue-400 block font-bold">UNCOM</span>
-                                    <span class="text-[11px] font-mono font-bold text-white" x-text="globalRarityCounts.uncommon">0</span>
-                                </div>
-                                <div class="bg-[#0b0f19] p-1 rounded border border-amber-500/20">
-                                    <span class="text-[8px] text-slate-400 block font-bold">COMM</span>
-                                    <span class="text-[11px] font-mono font-bold text-white" x-text="globalRarityCounts.common">0</span>
-                                </div>
-                                <div class="bg-[#0b0f19] p-1 rounded border border-amber-500/20">
-                                    <span class="text-[8px] text-purple-400 block font-bold">SPEC</span>
-                                    <span class="text-[11px] font-mono font-bold text-white" x-text="globalRarityCounts.special">0</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-3 pt-2 border-t border-slate-800 text-[10px] text-slate-400 flex justify-between">
-                            <span>Foils: <strong class="text-amber-300" x-text="globalFoilCardsCount"></strong></span>
-                            <span>Normals: <strong class="text-slate-200" x-text="globalTotalQuantity - globalFoilCardsCount"></strong></span>
-                        </div>
-                    </div>
-
-                    <div class="bg-[#07090e] border border-amber-500/20 rounded-xl p-3.5 shadow-inner flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                <span>Top Valuable Card</span>
-                                <i class="fa-solid fa-crown text-amber-400"></i>
-                            </div>
-                            <template x-if="globalTopCardInfo">
-                                <div class="mt-1.5 truncate">
-                                    <h4 class="text-xs font-bold text-white truncate" x-text="globalTopCardInfo.name"></h4>
-                                    <div class="flex items-center justify-between mt-1 text-[11px]">
-                                        <span class="text-amber-400 font-mono font-bold" x-text="formatCurrency(globalTopCardInfo.price)"></span>
-                                        <span class="text-slate-400 font-mono text-[10px] truncate max-w-[130px]" :title="globalTopCardInfo.bindersText" x-text="globalTopCardInfo.bindersText"></span>
-                                    </div>
-                                </div>
-                            </template>
-                            <template x-if="!globalTopCardInfo">
-                                <p class="text-xs text-slate-500 mt-2">No cards loaded</p>
-                            </template>
-                        </div>
-                        <div class="mt-3 pt-2.5 border-t border-slate-800 text-[10px] text-slate-400 flex justify-between">
-                            <span>Total Binders:</span>
-                            <span class="text-amber-300 font-semibold" x-text="availableBinders.length"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-[#07090e] border border-amber-500/20 rounded-xl p-3.5 shadow-inner">
-                    <div class="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">
-                        <span class="flex items-center gap-2"><i class="fa-solid fa-palette text-amber-400"></i> Mana Color Statistics & Valuation</span>
-                        <span class="text-[10px] text-slate-500">Entire Collection</span>
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-center">
-                        <template x-for="(stats, colorName) in globalColorStats">
-                            <div class="bg-[#0b0f19] p-2 rounded-lg border border-amber-500/20 flex flex-col justify-between shadow-sm">
-                                <span class="text-[11px] font-bold text-amber-200" x-text="colorName"></span>
-                                <div class="my-1">
-                                    <span class="text-sm font-extrabold text-white font-mono" x-text="stats.count"></span>
-                                    <span class="text-[10px] text-slate-500 block">cards</span>
-                                </div>
-                                <span class="text-[11px] font-mono font-semibold text-amber-400 border-t border-amber-500/10 pt-1" x-text="formatCurrency(stats.value)"></span>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- BINDER DROPDOWN (WITH VALUES) -->
-        <div x-show="cards.length > 0" class="bg-[#0b0f19] border border-amber-500/20 rounded-2xl shadow-xl overflow-hidden transition-all duration-300">
-            <div @click="isBinderOpen = !isBinderOpen" class="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-900/60 transition">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
-                        <i class="fa-solid fa-book-bookmark text-sm"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-amber-100 font-mtg tracking-wide flex items-center gap-2">
-                            Binders Visibility 
-                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-medium font-sans" x-text="selectedBinders.length + ' / ' + availableBinders.length + ' Visible'"></span>
-                        </h3>
-                        <p class="text-xs text-slate-400">Toggle binders and view individual binder values</p>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <div class="text-xs text-amber-400/80 hidden sm:block font-medium" x-text="isBinderOpen ? 'Hide list' : 'Show list'"></div>
-                    <i :class="isBinderOpen ? 'rotate-180' : ''" class="fa-solid fa-chevron-down text-amber-400/80 transition-transform duration-300"></i>
-                </div>
-            </div>
-
-            <div x-show="isBinderOpen" 
-                 x-transition:enter="transition ease-out duration-250"
-                 x-transition:enter-start="opacity-0 -translate-y-2"
-                 x-transition:enter-end="opacity-100 translate-y-0"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100 translate-y-0"
-                 x-transition:leave-end="opacity-0 -translate-y-2"
-                 class="px-4 pb-4 pt-1 border-t border-amber-500/10 space-y-3">
-                
-                <div class="flex items-center justify-between text-xs pt-2 pb-1">
-                    <span class="text-slate-400 font-medium">Toggle Binders:</span>
-                    <div class="flex items-center gap-2">
-                        <button @click="selectAllBinders()" class="text-amber-400 hover:underline font-semibold">Show All</button>
-                        <span class="text-slate-700">|</span>
-                        <button @click="clearAllBinders()" class="text-slate-400 hover:text-white">Hide All</button>
-                    </div>
-                </div>
-
-                <!-- BINDER CARDS GRID -->
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                    <template x-for="binder in availableBinders" :key="binder">
-                        <div @click="toggleBinder(binder)"
-                             class="bg-[#07090e] border rounded-xl p-3 flex items-center justify-between cursor-pointer transition group shadow-sm"
-                             :class="selectedBinders.includes(binder) ? 'border-amber-500/50 bg-[#0c1220] shadow-amber-500/5' : 'border-slate-800 hover:border-slate-700 opacity-70'">
-                            
-                            <div class="flex items-center gap-2 truncate pr-2">
-                                <span class="text-sm font-medium text-amber-100 truncate group-hover:text-amber-400 transition" x-text="binder"></span>
-                                <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-[#0b0f19] text-slate-400 font-mono shrink-0 border border-slate-800" x-text="getBinderCount(binder)"></span>
-                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono font-bold shrink-0" x-text="formatCurrency(getBinderValue(binder))"></span>
-                            </div>
-
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center transition shrink-0"
-                                 :class="selectedBinders.includes(binder) ? 'text-amber-400 bg-amber-500/10 border border-amber-500/20' : 'text-slate-500 bg-[#0b0f19] border border-slate-800'">
-                                <i :class="selectedBinders.includes(binder) ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash'" class="eye-transition text-sm"></i>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </div>
-        </div>
-
-        <!-- SEARCH & TOOLBAR -->
-        <div x-show="cards.length > 0" class="bg-[#0b0f19] border border-amber-500/20 rounded-2xl p-4 shadow-xl space-y-4">
-            
-            <div class="flex flex-wrap lg:flex-nowrap gap-3 items-center w-full">
-                <!-- Main Search Bar -->
-                <div class="relative flex-1 min-w-[200px]">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-amber-400">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </span>
-                    <input type="text" x-model.debounce.300ms="search" placeholder="Search card name or set code..." 
-                           class="w-full bg-[#07090e] border border-amber-500/20 rounded-xl pl-11 pr-10 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition shadow-inner">
-                    <template x-if="search">
-                        <button @click="search = ''" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-white transition">
-                            <i class="fa-solid fa-xmark text-sm"></i>
-                        </button>
-                    </template>
-                </div>
-
-                <!-- Controls on the right -->
-                <div class="flex flex-wrap items-center gap-3 shrink-0 w-full lg:w-auto">
-                    <!-- Sort Dropdown -->
-                    <select x-model="sortBy" class="bg-[#07090e] border border-amber-500/20 rounded-xl px-3 py-3 text-xs sm:text-sm text-amber-200 focus:outline-none focus:border-amber-500 transition shadow-sm">
-                        <option value="name_asc">Name (A - Z)</option>
-                        <option value="price_desc">Price (High to Low)</option>
-                        <option value="price_asc">Price (Low to High)</option>
-                        <option value="qty_desc">Quantity (High to Low)</option>
-                    </select>
-
-                    <button @click="isFiltersOpen = !isFiltersOpen" 
-                            class="px-4 py-3 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 border shadow-md"
-                            :class="isFiltersOpen ? 'bg-amber-600 border-amber-500 text-slate-950 font-bold' : 'bg-[#07090e] border-amber-500/20 text-slate-300 hover:bg-slate-900 hover:text-white'">
-                        <i class="fa-solid fa-sliders"></i>
-                        <span>Filters</span>
-                    </button>
-                    
-                    <div class="flex items-center bg-[#07090e] border border-amber-500/20 rounded-xl p-1 shrink-0 h-[46px]">
-                        <button @click="viewMode = 'table'" :class="viewMode === 'table' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold' : 'text-slate-400 hover:text-white'" class="px-3 h-full rounded-lg text-xs transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-table-list"></i>
-                        </button>
-                        <button @click="viewMode = 'tiles'" :class="viewMode === 'tiles' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold' : 'text-slate-400 hover:text-white'" class="px-3 h-full rounded-lg text-xs transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-grip"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- COLLAPSIBLE ADVANCED FILTERS -->
-            <div x-show="isFiltersOpen" 
-                 x-transition:enter="transition ease-out duration-250"
-                 x-transition:enter-start="opacity-0 -translate-y-4"
-                 x-transition:enter-end="opacity-100 translate-y-0"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100 translate-y-0"
-                 x-transition:leave-end="opacity-0 -translate-y-4"
-                 class="space-y-4 pt-4 border-t border-amber-500/10">
-                
-                <div class="flex items-center justify-between pb-1">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Refine Filter Grimoire</span>
-                    <button @click="resetFiltersToDefault()" class="text-xs text-amber-400 hover:underline font-semibold flex items-center gap-1.5">
-                        <i class="fa-solid fa-rotate-left"></i> Reset to Defaults
-                    </button>
-                </div>
-
-                <div class="space-y-1.5">
-                    <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase tracking-wider">
-                        <span>Mana Colors</span>
-                        <div class="flex gap-2 text-[11px]">
-                            <button @click="selectAllColors()" class="text-amber-400 hover:underline">Select All</button>
-                            <span>|</span>
-                            <button @click="clearAllColors()" class="text-slate-400 hover:text-white">Clear</button>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <template x-for="col in ['White', 'Blue', 'Black', 'Red', 'Green', 'Colorless', 'Multicolor']">
-                            <button @click="toggleColorFilter(col)"
-                                    class="px-3 py-1.5 rounded-xl text-xs font-semibold border transition flex items-center gap-1.5 shadow-sm"
-                                    :class="selectedColors.includes(col) ? getColorActiveStyle(col) : 'bg-[#07090e] border-slate-800 text-slate-500 opacity-60'">
-                                <span class="w-2 h-2 rounded-full shadow" :class="getColorDotStyle(col)"></span>
-                                <span x-text="col"></span>
-                            </button>
-                        </template>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div class="space-y-1">
-                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Rarities</label>
-                        <div class="flex flex-wrap gap-1.5 bg-[#07090e] border border-amber-500/20 rounded-xl p-2">
-                            <template x-for="r in ['common', 'uncommon', 'rare', 'mythic', 'special']">
-                                <button @click="toggleRarity(r)"
-                                        class="px-2.5 py-1 rounded-lg text-xs font-medium border transition capitalize"
-                                        :class="selectedRarities.includes(r) ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-sm' : 'bg-[#0b0f19] border-slate-800 text-slate-500'">
-                                    <span x-text="r.charAt(0).toUpperCase() + r.slice(1)"></span>
-                                </button>
-                            </template>
-                        </div>
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Type Line</label>
-                        <div class="bg-[#07090e] border border-amber-500/20 rounded-xl p-2 space-y-1.5 min-h-[46px] flex flex-wrap items-center gap-1.5">
-                            <template x-for="(t, idx) in typePills" :key="idx">
-                                <span class="inline-flex items-center gap-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-lg text-xs font-medium">
-                                    <span x-text="t"></span>
-                                    <button @click="removeTypePill(idx)" class="hover:text-white"><i class="fa-solid fa-xmark text-[10px]"></i></button>
-                                </span>
-                            </template>
-                            <div class="flex items-center flex-1 min-w-[120px]">
-                                <input type="text" x-model="typeInput" 
-                                       @keydown.enter.prevent="addTypePill()" 
-                                       @keyup.enter.prevent="addTypePill()" 
-                                       placeholder="Type & hit Enter..." 
-                                       class="bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none flex-1 px-1">
-                                <button @click="addTypePill()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 px-2 py-1 rounded-lg text-xs font-bold transition shrink-0 ml-1">
-                                    <i class="fa-solid fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Oracle Keyword</label>
-                        <div class="bg-[#07090e] border border-amber-500/20 rounded-xl p-2 space-y-1.5 min-h-[46px] flex flex-wrap items-center gap-1.5">
-                            <template x-for="(o, idx) in oraclePills" :key="idx">
-                                <span class="inline-flex items-center gap-1 bg-purple-500/20 border border-purple-500/40 text-purple-300 px-2 py-0.5 rounded-lg text-xs font-medium">
-                                    <span x-text="o"></span>
-                                    <button @click="removeOraclePill(idx)" class="hover:text-white"><i class="fa-solid fa-xmark text-[10px]"></i></button>
-                                </span>
-                            </template>
-                            <div class="flex items-center flex-1 min-w-[120px]">
-                                <input type="text" x-model="oracleInput" 
-                                       @keydown.enter.prevent="addOraclePill()" 
-                                       @keyup.enter.prevent="addOraclePill()" 
-                                       placeholder="Keyword & hit Enter..." 
-                                       class="bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none flex-1 px-1">
-                                <button @click="addOraclePill()" class="bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded-lg text-xs font-bold transition shrink-0 ml-1">
-                                    <i class="fa-solid fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-3 pt-2">
-                    <div class="relative w-full sm:w-auto">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-400 text-xs font-semibold">$</span>
-                        <input type="number" step="0.50" min="0" x-model.number="minPrice" placeholder="Min Price" 
-                               class="w-full sm:w-32 bg-[#07090e] border border-amber-500/20 rounded-xl pl-7 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition">
-                    </div>
-
-                    <select x-model="selectedFoil" class="w-full sm:w-auto bg-[#07090e] border border-amber-500/20 rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-amber-500 transition">
-                        <option value="">All Finishes</option>
-                        <option value="normal">Normal</option>
-                        <option value="foil">Foil</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- RENDER CONTAINER -->
-        <div x-show="cards.length > 0" class="bg-[#0b0f19] border border-amber-500/20 rounded-2xl shadow-2xl overflow-hidden">
-            <!-- TABLE VIEW -->
-            <div x-show="viewMode === 'table'" @scroll.passive="handleScroll($event)" class="overflow-y-auto max-h-[650px] relative">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-[#07090e] border-b border-amber-500/20 text-xs font-semibold text-amber-200 uppercase tracking-wider sticky top-0 z-10 shadow-sm">
-                        <tr>
-                            <th class="py-4 px-4 font-mtg tracking-wide">Card Name</th>
-                            <th class="py-4 px-4 font-mtg tracking-wide">Type Line</th>
-                            <th class="py-4 px-4 font-mtg tracking-wide">Set</th>
-                            <th class="py-4 px-4 font-mtg tracking-wide">Rarity</th>
-                            <th class="py-4 px-4 text-center font-mtg tracking-wide">Qty</th>
-                            <th class="py-4 px-4 font-mtg tracking-wide">Finish</th>
-                            <th class="py-4 px-4 font-mtg tracking-wide">Binder Name</th>
-                            <th class="py-4 px-4 text-right font-mtg tracking-wide">Price</th>
-                            <th class="py-4 px-4 text-right font-mtg tracking-wide">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800/60 text-sm">
-                        <template x-for="card in visibleCards" :key="card.id">
-                            <tr @click="openModalByCard(card)" class="hover:bg-amber-500/5 cursor-pointer transition group">
-                                <td class="py-3 px-4 font-medium text-white flex items-center gap-3">
-                                    <div class="w-9 h-12 rounded bg-slate-900 border overflow-hidden flex items-center justify-center shrink-0 transition relative shadow-sm"
-                                         :class="card.Foil && card.Foil !== 'normal' ? 'foil-border' : 'border-amber-500/20'">
-                                        <template x-if="card['Image URI']">
-                                            <img :src="card['Image URI']" :alt="card.Name" loading="lazy" class="w-full h-full object-cover">
-                                        </template>
-                                        <template x-if="!card['Image URI']">
-                                            <i class="fa-solid fa-image text-slate-500 text-xs"></i>
-                                        </template>
-                                        <template x-if="card.Foil && card.Foil !== 'normal'">
-                                            <div class="absolute inset-0 foil-shimmer pointer-events-none"></div>
-                                        </template>
-                                    </div>
-                                    <div>
-                                        <span class="group-hover:text-amber-400 transition font-semibold" x-text="card.Name"></span>
-                                        <div class="text-xs text-slate-400 flex items-center gap-1.5">
-                                            <span x-text="'#' + card['Collector number']"></span>
-                                            <template x-if="card.Foil && card.Foil !== 'normal'">
-                                                <span class="text-[10px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold uppercase border border-amber-500/30" x-text="card.Foil"></span>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="py-3 px-4 text-slate-300 text-xs" x-text="card['Type Line'] || '—'"></td>
-                                <td class="py-3 px-4 text-slate-300">
-                                    <span class="px-2 py-0.5 rounded bg-[#07090e] border border-amber-500/20 text-xs uppercase font-mono text-amber-200" x-text="card['Set code']"></span>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                          :class="{
-                                              'bg-amber-500/10 text-amber-400 border border-amber-500/30': card.Rarity === 'rare' || card.Rarity === 'mythic',
-                                              'bg-blue-500/10 text-blue-400 border border-blue-500/20': card.Rarity === 'uncommon',
-                                              'bg-slate-900 text-slate-400 border border-slate-700': card.Rarity === 'common' || !card.Rarity
-                                          }"
-                                          x-text="card.Rarity ? card.Rarity.charAt(0).toUpperCase() + card.Rarity.slice(1) : 'Common'">
-                                    </span>
-                                </td>
-                                <td class="py-3 px-4 text-center font-semibold text-emerald-400 font-mono" x-text="card.Quantity"></td>
-                                <td class="py-3 px-4 text-slate-300 capitalize" x-text="card.Foil || 'Normal'"></td>
-                                <td class="py-3 px-4 text-slate-300 text-xs font-medium" x-text="card['Binder Name']"></td>
-                                <td class="py-3 px-4 text-right font-mono text-slate-300" x-text="formatCurrency(card.effectivePrice)"></td>
-                                <td class="py-3 px-4 text-right font-mono font-bold text-amber-400" x-text="formatCurrency(card.effectivePrice * card.Quantity)"></td>
-                            </tr>
-                        </template>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- TILE VIEW -->
-            <div x-show="viewMode === 'tiles'" @scroll.passive="handleScroll($event)" class="overflow-y-auto max-h-[650px] p-4 relative">
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    <template x-for="card in visibleCards" :key="card.id">
-                        <div @click="openModalByCard(card)" 
-                             class="bg-[#07090e] border rounded-2xl p-3 shadow-lg cursor-pointer transition flex flex-col justify-between group relative overflow-hidden"
-                             :class="card.Foil && card.Foil !== 'normal' ? 'foil-border' : 'border-amber-500/20 hover:border-amber-500/60'">
-                            
-                            <template x-if="card.Foil && card.Foil !== 'normal'">
-                                <div class="absolute inset-0 foil-shimmer pointer-events-none opacity-60"></div>
-                            </template>
-
-                            <div class="w-full aspect-[2.5/3.5] rounded-xl bg-[#0b0f19] border border-amber-500/20 overflow-hidden flex items-center justify-center relative mb-3 shadow-inner z-10">
-                                <template x-if="card['Image URI']">
-                                    <img :src="card['Image URI']" :alt="card.Name" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                                </template>
-                                <template x-if="!card['Image URI']">
-                                    <div class="flex flex-col items-center justify-center p-2 text-center">
-                                        <i class="fa-solid fa-compact-disc text-amber-400 text-2xl mb-1"></i>
-                                        <span class="text-[11px] text-slate-400" x-text="card.Name"></span>
-                                    </div>
-                                </template>
-                                <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-[#07090e]/90 border border-amber-500/30 text-[10px] font-bold text-emerald-400 font-mono shadow" x-text="'x' + card.Quantity"></span>
-                                <template x-if="card.Foil && card.Foil !== 'normal'">
-                                    <span class="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[9px] uppercase tracking-wider shadow">Foil</span>
-                                </template>
-                            </div>
-                            <div class="z-10">
-                                <h4 class="font-semibold text-amber-100 text-xs truncate group-hover:text-amber-400 transition" x-text="card.Name"></h4>
-                                <div class="text-[10px] text-slate-400 truncate mt-0.5" x-text="card['Type Line'] || ''"></div>
-                                <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1">
-                                    <span class="uppercase font-mono text-amber-300/80" x-text="card['Set code']"></span>
-                                    <span class="font-mono font-bold text-amber-400" x-text="formatCurrency(card.effectivePrice)"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </div>
-        </div>
-
-        <!-- Nothing loaded yet -->
-        <template x-if="cards.length === 0">
-            <div class="bg-[#0b0f19] border border-amber-500/20 rounded-2xl py-16 px-6 text-center text-slate-500 shadow-xl">
-                <i class="fa-solid fa-vault text-4xl mb-3 text-amber-500/40"></i>
-                <p class="text-base font-medium text-amber-100 font-mtg">An empty vault</p>
-                <p class="text-xs mt-1.5 text-slate-400 max-w-md mx-auto leading-relaxed">
-                    Paste a link to a ManaBox CSV above and the page does the rest: parses it, fetches every printing from Scryfall,
-                    and prices the whole collection. Nothing about your cards lives in this file.
-                </p>
-                <p class="text-[11px] mt-3 text-slate-600">
-                    You can also hand it the link directly: <code class="text-amber-300/70">DeckForge-Vault.html?csv=YOUR_CSV_URL</code>
-                </p>
-                <p class="text-[11px] mt-1 text-slate-600">
-                    A deck shared from the DeckForge app opens here already built.
-                </p>
-            </div>
-        </template>
-
-        <!-- Loaded, but the filters exclude everything -->
-        <template x-if="cards.length > 0 && filteredCards.length === 0">
-            <div class="bg-[#0b0f19] border border-amber-500/20 rounded-2xl py-16 text-center text-slate-500 shadow-xl">
-                <i class="fa-solid fa-scroll text-4xl mb-3 text-amber-500/40"></i>
-                <p class="text-base font-medium text-amber-100 font-mtg">No matching cards found in grimoire</p>
-                <p class="text-xs mt-1 text-slate-400">Try selecting more binders or adjusting your search filters.</p>
-            </div>
-        </template>
-    </main>
-
-    <!-- Modal Inspector -->
-    <div x-show="isModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto"
-         @keydown.escape.window="closeModal()">
-        
-        <div @click.away="closeModal()" class="bg-[#0b0f19] border border-amber-500/40 rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl relative my-auto max-h-[90vh] overflow-y-auto">
-            
-            <button @click="closeModal()" class="sticky top-0 float-right z-30 text-amber-200 hover:text-white bg-[#07090e]/90 hover:bg-slate-800 w-9 h-9 rounded-full flex items-center justify-center shadow-lg transition border border-amber-500/30">
-                <i class="fa-solid fa-xmark text-sm"></i>
-            </button>
-
-            <template x-if="selectedCard">
-                <div :key="selectedCard.id" 
-                     x-show="modalAnimate"
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 translate-y-4 scale-95"
-                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                     x-transition:leave="transition ease-in duration-200"
-                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                     x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-                     class="flex flex-col sm:flex-row gap-5 items-center px-2 sm:px-4 py-2 mt-2">
-                    
-                    <div class="flex items-center justify-center gap-3 sm:gap-5 w-full">
-                        <button @click="prevCardAnim()" class="z-20 bg-[#07090e] hover:bg-amber-600/20 text-amber-300 w-9 h-9 rounded-full shrink-0 flex items-center justify-center shadow-lg transition border border-amber-500/30">
-                            <i class="fa-solid fa-chevron-left text-sm"></i>
-                        </button>
-                        
-                        <div class="flex flex-col items-center gap-3 shrink-0">
-                            <div class="w-44 sm:w-48 h-64 sm:h-72 perspective-1000 relative group" :class="isDoubleFaced(selectedCard) ? 'cursor-pointer' : ''" @click="toggleCardFace()">
-                                <div class="w-full h-full duration-500 transform-style-3d relative rounded-2xl shadow-2xl"
-                                     :class="isCardFlipped ? 'rotate-y-180' : ''">
-                                    <div class="absolute inset-0 w-full h-full backface-hidden rounded-2xl bg-[#07090e] border overflow-hidden flex items-center justify-center shadow-2xl"
-                                         :class="selectedCard.Foil && selectedCard.Foil !== 'normal' ? 'foil-border' : 'border-amber-500/30'">
-                                        <template x-if="selectedCard['Image URI']">
-                                            <img :src="selectedCard['Image URI']" :alt="selectedCard.Name" class="w-full h-full object-cover">
-                                        </template>
-                                        <template x-if="!selectedCard['Image URI']">
-                                            <div class="flex flex-col items-center justify-center p-4 text-center">
-                                                <i class="fa-solid fa-compact-disc text-amber-400 text-3xl mb-2"></i>
-                                                <span class="text-xs text-slate-400" x-text="selectedCard.Name"></span>
-                                            </div>
-                                        </template>
-                                        <template x-if="selectedCard.Foil && selectedCard.Foil !== 'normal'">
-                                            <div class="absolute inset-0 foil-shimmer pointer-events-none"></div>
-                                        </template>
-                                    </div>
-                                    <template x-if="isDoubleFaced(selectedCard)">
-                                        <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-2xl bg-[#07090e] border overflow-hidden flex items-center justify-center shadow-2xl"
-                                             :class="selectedCard.Foil && selectedCard.Foil !== 'normal' ? 'foil-border' : 'border-amber-500/30'">
-                                            <template x-if="selectedCard['Back Image URI']">
-                                                <img :src="selectedCard['Back Image URI']" :alt="selectedCard.Name" class="w-full h-full object-cover">
-                                            </template>
-                                            <template x-if="!selectedCard['Back Image URI']">
-                                                <div class="flex flex-col items-center justify-center p-4 text-center">
-                                                    <i class="fa-solid fa-sync text-amber-400 text-3xl mb-2"></i>
-                                                    <span class="text-xs text-slate-400" x-text="selectedCard.Name"></span>
-                                                </div>
-                                            </template>
-                                            <template x-if="selectedCard.Foil && selectedCard.Foil !== 'normal'">
-                                                <div class="absolute inset-0 foil-shimmer pointer-events-none"></div>
-                                            </template>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-
-                            <template x-if="isDoubleFaced(selectedCard)">
-                                <button @click="toggleCardFace()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-3 py-1 rounded-xl text-xs shadow transition flex items-center gap-1.5">
-                                    <i class="fa-solid fa-rotate"></i>
-                                    <span x-text="isCardFlipped ? 'Show Front Face' : 'Flip to Back'"></span>
-                                </button>
-                            </template>
-                        </div>
-
-                        <button @click="nextCardAnim()" class="z-20 bg-[#07090e] hover:bg-amber-600/20 text-amber-300 w-9 h-9 rounded-full shrink-0 flex items-center justify-center shadow-lg transition border border-amber-500/30">
-                            <i class="fa-solid fa-chevron-right text-sm"></i>
-                        </button>
-                    </div>
-
-                    <div class="flex-1 space-y-3 w-full">
-                        <div>
-                            <div class="flex flex-wrap items-center gap-2 mb-1">
-                                <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 font-semibold flex items-center gap-1.5 shadow-sm">
-                                    <i class="fa-solid fa-book-bookmark text-[10px]"></i>
-                                    <span x-text="selectedCard['Binder Name']"></span>
-                                </span>
-                                <span class="text-xs uppercase font-semibold text-slate-400 tracking-wider font-mono" x-text="selectedCard['Set name'] || selectedCard['Set code']"></span>
-                            </div>
-                            <h3 class="text-lg font-bold text-amber-100 font-mtg mt-0.5" x-text="selectedCard.Name"></h3>
-                            <p class="text-xs text-amber-300/90 font-medium mt-0.5" x-text="selectedCard['Type Line']"></p>
-                        </div>
-
-                        <div class="bg-[#07090e] rounded-xl border border-amber-500/20 text-xs overflow-hidden shadow-inner">
-                            <div @click="isOracleOpen = !isOracleOpen" class="p-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-900 transition">
-                                <span class="font-semibold text-amber-200 flex items-center gap-1.5"><i class="fa-solid fa-book-open text-amber-400 text-xs"></i> Oracle Text</span>
-                                <i :class="isOracleOpen ? 'rotate-180' : ''" class="fa-solid fa-chevron-down text-slate-500 transition-transform text-xs"></i>
-                            </div>
-                            <template x-if="selectedCard['Oracle Text']">
-                                <div x-show="isOracleOpen" class="px-2.5 pb-2.5 pt-1 border-t border-amber-500/10 max-h-32 overflow-y-auto">
-                                    <p class="text-slate-300 italic text-[11px] leading-relaxed whitespace-pre-line" x-text="selectedCard['Oracle Text']"></p>
-                                </div>
-                            </template>
-                        </div>
-
-                        <div class="bg-[#07090e] p-3 rounded-xl border border-amber-500/20 text-xs space-y-3 shadow-inner">
-                            <div class="flex items-center justify-between border-b border-amber-500/10 pb-2.5 text-[11px] text-slate-300">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="text-slate-500">Qty:</span>
-                                    <span class="font-bold text-emerald-400 font-mono text-xs" x-text="selectedCard.Quantity"></span>
-                                </div>
-                                <div class="flex items-center gap-1.5">
-                                    <span class="text-slate-500">Finish:</span>
-                                    <span class="font-bold text-amber-400 capitalize" x-text="selectedCard.Foil || 'Normal'"></span>
-                                </div>
-                                <div class="flex items-center gap-1.5">
-                                    <span class="text-slate-500">Cond:</span>
-                                    <span class="font-bold text-slate-200 uppercase text-[10px]" x-text="selectedCard.Condition || 'Near Mint'"></span>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center justify-between pt-0.5">
-                                <div>
-                                    <span class="text-[10px] text-slate-500 block">Unit Price</span>
-                                    <span class="text-base font-bold font-mono text-slate-200" x-text="formatCurrency(selectedCard.effectivePrice)"></span>
-                                </div>
-                                <div class="text-right">
-                                    <span class="text-[10px] text-slate-500 block">Total Value</span>
-                                    <span class="text-base font-bold font-mono text-amber-400" x-text="formatCurrency(selectedCard.effectivePrice * selectedCard.Quantity)"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </template>
-        </div>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><b>DeckForge</b><span>shared deck</span></div>
+    <h1 id="deck-name">Shared deck</h1>
+    <div class="meta" id="deck-meta"></div>
+    <div class="head-row">
+      <div class="value" id="deck-value"></div>
+      <div class="actions">
+        <button id="toggle-art" type="button">Show art</button>
+        <button id="copy-list" type="button">Copy list</button>
+      </div>
     </div>
-
-    <!-- JavaScript App Logic with Browser-Side Scryfall Data Mining Engine -->
-    <script>
-        function collectionApp() {
-            return {
-                cards: [],
-
-                // where the cards come from: this file holds none of them
-                linkInput: '',
-                lastLink: '',
-                // a deck that arrived inside this page or its link, rather than from a URL
-                sharedDeck: null,
-                sourceLabel: '',
-                loadError: '',
-                isLoading: false,
-                search: '',
-                minPrice: '',
-                selectedColors: ['White', 'Blue', 'Black', 'Red', 'Green', 'Colorless', 'Multicolor'],
-                selectedRarities: ['common', 'uncommon', 'rare', 'mythic', 'special'],
-                
-                typeInput: '',
-                typePills: [],
-                oracleInput: '',
-                oraclePills: [],
-
-                selectedFoil: '',
-                selectedBinders: [],
-                sortBy: 'name_asc',
-                viewMode: 'tiles',
-                displayLimit: 60,
-                
-                isFiltersOpen: false,
-                isModalOpen: false,
-                modalAnimate: false,
-                selectedIndex: 0,
-                isCardFlipped: false,
-                isBinderOpen: false,
-                isStatsOpen: false,
-                isOracleOpen: true,
-
-                isEnriching: false,
-                enrichProgress: 0,
-                enrichStatusText: '',
-
-                _cachedFiltered: null,
-                _lastFilterKey: '',
-
-                init() {
-                    this.boot().catch(err => {
-                        this.loadError = (err && err.message) ? err.message : 'That deck could not be unpacked.';
-                    });
-                },
-
-                /** Three ways in: a deck seeded into this file, a deck inside the link, or a CSV link. */
-                async boot() {
-                    const seeded = await this.readSeed();
-                    if (seeded) {
-                        this.applySharedDeck(seeded);
-                        return;
-                    }
-                    const given = this.linkFromAddress();
-                    if (given) {
-                        this.linkInput = given;
-                        this.loadFromLink();
-                    }
-                },
-
-                /**
-                 * A shared deck arrives two ways: as window.DECKFORGE_SEED written at the end of the
-                 * page, or as #d=<base64 gzipped json> in the link. Same payload either way.
-                 */
-                async readSeed() {
-                    if (window.DECKFORGE_SEED) return window.DECKFORGE_SEED;
-
-                    let raw = new URLSearchParams(window.location.search).get('d');
-                    if (!raw) {
-                        const hash = window.location.hash || '';
-                        const at = hash.indexOf('d=');
-                        if (at >= 0) raw = hash.slice(at + 2).split('&')[0];
-                    }
-                    if (!raw) return null;
-
-                    raw = decodeURIComponent(raw);
-                    const binary = atob(raw.replace(/-/g, '+').replace(/_/g, '/'));
-                    const bytes = new Uint8Array(binary.length);
-                    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-
-                    if (typeof DecompressionStream === 'undefined') {
-                        throw new Error('This browser cannot unpack a deck link. Ask for the page file instead.');
-                    }
-                    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-                    const text = await new Response(stream).text();
-                    return JSON.parse(text);
-                },
-
-                /** Deck lines become ordinary rows, so every filter, tile and total already works. */
-                applySharedDeck(seed) {
-                    const lines = Array.isArray(seed.lines) ? seed.lines : [];
-                    if (!lines.length) throw new Error('That page carried a deck with no cards in it.');
-
-                    const boardName = { commander: 'Commander', companion: 'Companion', side: 'Sideboard' };
-                    this.sharedDeck = seed;
-                    this.cards = lines.map((line, i) => {
-                        const [qty, set, num, foilQty, name, board, printing] = line;
-                        const quantity = parseInt(qty, 10) || 1;
-                        const foilCopies = parseInt(foilQty, 10) || 0;
-                        return {
-                            id: i + 1,
-                            'Scryfall ID': printing || '',
-                            Name: name || '',
-                            'Set code': (set || '').toUpperCase(),
-                            'Set name': '',
-                            'Collector number': num ? String(num) : '',
-                            Foil: foilCopies >= quantity && foilCopies > 0 ? 'foil' : 'normal',
-                            Rarity: '',
-                            Quantity: quantity,
-                            'Binder Name': boardName[board] || 'Deck',
-                            'Purchase price': 0,
-                            Condition: '',
-                            'Image URI': '',
-                            'Back Image URI': '',
-                            'Is Double Sided': 'False',
-                            'Type Line': '',
-                            'Oracle Text': '',
-                            Colors: '',
-                            'Scryfall USD': '',
-                            'Scryfall Foil USD': '',
-                        };
-                    });
-
-                    this.displayLimit = 60;
-                    this.isStatsOpen = true;
-                    this.selectAllBinders();
-                    this.invalidateCache();
-                    if (seed.name) document.title = seed.name + ' · DeckForge';
-
-                    // names, art and prices for whoever opens the link, from Scryfall itself
-                    this.runScryfallDataMining();
-                },
-
-
-                /** Hand the page a collection with ?csv=<url> (or #csv=<url>) and it loads on open. */
-                linkFromAddress() {
-                    const fromQuery = new URLSearchParams(window.location.search).get('csv');
-                    if (fromQuery) return fromQuery;
-                    const hash = window.location.hash || '';
-                    const at = hash.indexOf('csv=');
-                    return at >= 0 ? decodeURIComponent(hash.slice(at + 4)) : '';
-                },
-
-                /** One pasted link, rewritten into the direct-download shape each host actually serves. */
-                normalizeLink(raw) {
-                    let url = (raw || '').trim();
-                    if (!url) return [];
-                    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-
-                    let m = url.match(/^https?:\/\/(?:www\.)?docs\.google\.com\/spreadsheets\/(?:u\/\d+\/)?d\/([a-zA-Z0-9_-]+)/);
-                    if (m) {
-                        const id = m[1];
-                        const tab = (url.match(/[#&?]gid=(\d+)/) || [])[1];
-                        const gid = tab ? '&gid=' + tab : '';
-                        return [
-                            `https://docs.google.com/spreadsheets/d/${id}/export?format=csv${gid}`,
-                            `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv${gid}`,
-                        ];
-                    }
-
-                    m = url.match(/^https?:\/\/(?:www\.)?github\.com\/([^/]+)\/([^/]+)\/blob\/(.+)$/);
-                    if (m) return [`https://raw.githubusercontent.com/${m[1]}/${m[2]}/${m[3]}`];
-
-                    m = url.match(/^https?:\/\/(?:www\.)?gist\.github\.com\/([^/]+)\/([a-zA-Z0-9]+)\/?$/);
-                    if (m) return [`https://gist.githubusercontent.com/${m[1]}/${m[2]}/raw`];
-
-                    m = url.match(/^https?:\/\/(?:www\.)?pastebin\.com\/([a-zA-Z0-9]+)$/);
-                    if (m) return [`https://pastebin.com/raw/${m[1]}`];
-
-                    if (/dropbox\.com/i.test(url)) {
-                        let direct = url.replace(/([?&])dl=0/, '$1dl=1');
-                        if (!/[?&]dl=1/.test(direct)) direct += (direct.includes('?') ? '&dl=1' : '?dl=1');
-                        return [direct];
-                    }
-
-                    return [url];
-                },
-
-                hostOf(url) {
-                    try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return 'the link'; }
-                },
-
-                looksLikeWebPage(text) {
-                    return /^\s*(<!doctype html|<html|<!\-\-)/i.test((text || '').slice(0, 200));
-                },
-
-                /** Tries each candidate; the first one that returns something that is not a web page wins. */
-                async fetchCsv(candidates) {
-                    const reasons = [];
-                    for (const url of candidates) {
-                        let res;
-                        try {
-                            res = await fetch(url, { redirect: 'follow', headers: { Accept: 'text/csv,text/plain,*/*' } });
-                        } catch (err) {
-                            reasons.push(this.hostOf(url) + ' blocked the read (cross-site request refused)');
-                            continue;
-                        }
-                        if (!res.ok) {
-                            reasons.push(this.hostOf(url) + ' answered ' + res.status);
-                            continue;
-                        }
-                        const text = await res.text();
-                        if (this.looksLikeWebPage(text)) {
-                            reasons.push(this.hostOf(url) + ' served a web page instead of the file');
-                            continue;
-                        }
-                        if (!text.trim()) {
-                            reasons.push(this.hostOf(url) + ' returned an empty file');
-                            continue;
-                        }
-                        return { text, url };
-                    }
-                    throw new Error(reasons.join('; ') + '. A direct CSV link works best, or download the file and use Upload CSV.');
-                },
-
-                async loadFromLink(urlOverride) {
-                    const raw = (urlOverride || this.linkInput || '').trim();
-                    this.loadError = '';
-                    if (!raw) {
-                        this.loadError = 'Paste a link to a collection CSV first.';
-                        return;
-                    }
-                    const candidates = this.normalizeLink(raw);
-                    this.isLoading = true;
-                    this.sourceLabel = '';
-                    try {
-                        const got = await this.fetchCsv(candidates);
-                        this.parseCSVAndEnrich(got.text);
-                        this.lastLink = raw;
-                        this.linkInput = raw;
-                        this.sourceLabel = 'Loaded ' + this.cards.length.toLocaleString() + ' lines from ' + this.hostOf(got.url);
-                    } catch (err) {
-                        this.loadError = (err && err.message) ? err.message : 'That link could not be read.';
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                reloadSource() {
-                    if (this.lastLink) this.loadFromLink(this.lastLink);
-                },
-
-
-                resetFiltersToDefault() {
-                    this.search = '';
-                    this.minPrice = '';
-                    this.selectedColors = ['White', 'Blue', 'Black', 'Red', 'Green', 'Colorless', 'Multicolor'];
-                    this.selectedRarities = ['common', 'uncommon', 'rare', 'mythic', 'special'];
-                    this.typeInput = '';
-                    this.typePills = [];
-                    this.oracleInput = '';
-                    this.oraclePills = [];
-                    this.selectedFoil = '';
-                    this.selectAllBinders();
-                    this.sortBy = 'name_asc';
-                    this.invalidateCache();
-                },
-
-                handleFileUpload(event) {
-                    const file = event.target.files[0];
-                    if (!file) return;
-
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        this.loadError = '';
-                        try {
-                            this.parseCSVAndEnrich(e.target.result);
-                            this.lastLink = '';
-                            this.sourceLabel = 'Loaded ' + this.cards.length.toLocaleString() + ' lines from ' + file.name;
-                        } catch (err) {
-                            this.loadError = (err && err.message) ? err.message : 'That file could not be read.';
-                        }
-                    };
-                    reader.readAsText(file);
-                },
-
-                parseCSVAndEnrich(text) {
-                    const rows = [];
-                    let row = [];
-                    let inQuotes = false;
-                    let value = '';
-
-                    for (let i = 0; i < text.length; i++) {
-                        const char = text[i];
-                        const nextChar = text[i + 1];
-
-                        if (char === '"' && inQuotes && nextChar === '"') {
-                            value += '"';
-                            i++; 
-                        } else if (char === '"') {
-                            inQuotes = !inQuotes;
-                        } else if (char === ',' && !inQuotes) {
-                            row.push(value.trim());
-                            value = '';
-                        } else if ((char === '\r' && nextChar === '\n') && !inQuotes) {
-                            row.push(value.trim());
-                            rows.push(row);
-                            row = [];
-                            value = '';
-                            i++;
-                        } else if (char === '\n' && !inQuotes) {
-                            row.push(value.trim());
-                            rows.push(row);
-                            row = [];
-                            value = '';
-                        } else {
-                            value += char;
-                        }
-                    }
-                    if (value || row.length > 0) {
-                        row.push(value.trim());
-                        rows.push(row);
-                    }
-
-                    if (rows.length < 2) throw new Error('That file has no rows to read.');
-
-                    const headers = rows[0].map(h => h.replace(/^["']|["']$/g, ''));
-                    if (!headers.some(h => h.toLowerCase() === 'name')) {
-                        throw new Error('That CSV has no Name column, so it is not a card export.');
-                    }
-                    const parsedCards = [];
-
-                    for (let i = 1; i < rows.length; i++) {
-                        const r = rows[i];
-                        if (r.length < headers.length || (r.length === 1 && !r[0])) continue;
-
-                        const card = {};
-                        headers.forEach((h, index) => {
-                            card[h] = r[index] !== undefined ? r[index].replace(/^["']|["']$/g, '') : '';
-                        });
-
-                        card.id = i;
-                        card.Quantity = parseInt(card.Quantity) || 1;
-                        card['Purchase price'] = parseFloat(card['Purchase price']) || 0.00;
-                        // a plain decklist still needs somewhere to live, or the binder filter hides every row
-                        card['Binder Name'] = card['Binder Name'] || card.Binder || card.Deck || 'Collection';
-                        if (!card.Foil) card.Foil = 'normal';
-                        parsedCards.push(card);
-                    }
-
-                    if (parsedCards.length === 0) {
-                        throw new Error('That CSV had a Name column but no usable rows.');
-                    }
-
-                    if (parsedCards.length > 0) {
-                        this.cards = parsedCards;
-                        this.displayLimit = 60;
-                        this.selectAllBinders();
-                        // Automatically start browser-side Scryfall data mining
-                        this.runScryfallDataMining();
-                    }
-                },
-
-                async runScryfallDataMining() {
-                    this.isEnriching = true;
-                    this.enrichProgress = 5;
-                    this.enrichStatusText = "Preparing Scryfall identifiers...";
-
-                    // Every row gets one key, best first: the printing id, then set + number, then the name.
-                    // Maps, not a find(), because the same printing usually sits in several binders.
-                    const byId = new Map(), bySetNumber = new Map(), byName = new Map();
-                    const add = (map, key, idx) => {
-                        if (!map.has(key)) map.set(key, []);
-                        map.get(key).push(idx);
-                    };
-
-                    this.cards.forEach((card, idx) => {
-                        const scryId = (card['Scryfall ID'] || '').trim();
-                        const setCode = (card['Set code'] || '').trim().toLowerCase();
-                        const collectorNum = (card['Collector number'] || '').trim();
-                        const cardName = (card.Name || '').trim();
-
-                        if (scryId) add(byId, scryId, idx);
-                        else if (setCode && collectorNum) add(bySetNumber, setCode + '|' + collectorNum, idx);
-                        else if (cardName) add(byName, cardName.toLowerCase(), idx);
-                    });
-
-                    // one question per unique printing, not per row
-                    const questions = [
-                        ...[...byId.keys()].map(id => ({ id })),
-                        ...[...bySetNumber.keys()].map(k => ({ set: k.split('|')[0], collector_number: k.split('|')[1] })),
-                        ...[...byName.keys()].map(name => ({ name })),
-                    ];
-
-                    if (questions.length === 0) {
-                        this.isEnriching = false;
-                        return;
-                    }
-
-                    const chunkSize = 75;
-                    const chunks = [];
-                    for (let i = 0; i < questions.length; i += chunkSize) {
-                        chunks.push(questions.slice(i, i + chunkSize));
-                    }
-
-                    for (let c = 0; c < chunks.length; c++) {
-                        const chunk = chunks[c];
-                        this.enrichStatusText = `Mining Scryfall batch ${c + 1} of ${chunks.length} (${Math.round((c / chunks.length) * 100)}%)...`;
-                        this.enrichProgress = Math.round(10 + (c / chunks.length) * 85);
-
-                        try {
-                            const res = await fetch("https://api.scryfall.com/cards/collection", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ identifiers: chunk })
-                            });
-
-                            if (res.ok) {
-                                const data = await res.json();
-                                data.data.forEach(scryCard => {
-                                    const rows = new Set();
-                                    if (byId.has(scryCard.id)) byId.get(scryCard.id).forEach(i => rows.add(i));
-                                    const setKey = (scryCard.set || '').toLowerCase() + '|' + scryCard.collector_number;
-                                    if (bySetNumber.has(setKey)) bySetNumber.get(setKey).forEach(i => rows.add(i));
-                                    const nameKey = (scryCard.name || '').toLowerCase();
-                                    if (byName.has(nameKey)) byName.get(nameKey).forEach(i => rows.add(i));
-
-                                    rows.forEach(idx => this.applyScryfallCard(this.cards[idx], scryCard));
-                                });
-                            }
-                        } catch (err) {
-                            console.error("Scryfall browser fetch error:", err);
-                        }
-
-                        // Rate limit respect
-                        await new Promise(r => setTimeout(r, 100));
-                    }
-
-                    this.enrichProgress = 100;
-                    this.enrichStatusText = "Data mining complete!";
-                    setTimeout(() => {
-                        this.isEnriching = false;
-                        this.invalidateCache();
-                    }, 800);
-                },
-
-                /** Everything the grimoire needs from one Scryfall printing, written onto one CSV row. */
-                applyScryfallCard(cardRef, scryCard) {
-                    if (scryCard.image_uris) {
-                        cardRef['Image URI'] = scryCard.image_uris.normal || '';
-                        cardRef['Is Double Sided'] = 'False';
-                    } else if (scryCard.card_faces && scryCard.card_faces[0].image_uris) {
-                        cardRef['Image URI'] = scryCard.card_faces[0].image_uris.normal || '';
-                        const backFace = scryCard.card_faces[1];
-                        cardRef['Back Image URI'] = (backFace && backFace.image_uris) ? (backFace.image_uris.normal || '') : '';
-                        cardRef['Is Double Sided'] = cardRef['Back Image URI'] ? 'True' : 'False';
-                    }
-
-                    cardRef['Name'] = cardRef['Name'] || scryCard.name || '';
-                    cardRef['Set code'] = cardRef['Set code'] || (scryCard.set || '').toUpperCase();
-                    cardRef['Set name'] = cardRef['Set name'] || scryCard.set_name || '';
-                    cardRef['Collector number'] = cardRef['Collector number'] || scryCard.collector_number || '';
-                    cardRef['Rarity'] = (cardRef.Rarity || scryCard.rarity || 'common').toLowerCase();
-                    cardRef['Type Line'] = scryCard.type_line || '';
-                    cardRef['Oracle Text'] = scryCard.oracle_text ||
-                        (scryCard.card_faces ? scryCard.card_faces.map(f => f.oracle_text).filter(Boolean).join(' // ') : '');
-
-                    const colors = scryCard.color_identity || scryCard.colors ||
-                        (scryCard.card_faces && scryCard.card_faces[0].colors) || [];
-                    const colorMap = { W: 'White', U: 'Blue', B: 'Black', R: 'Red', G: 'Green' };
-                    if (colors.length > 1) cardRef['Colors'] = 'Multicolor';
-                    else if (colors.length === 1) cardRef['Colors'] = colorMap[colors[0]] || 'Colorless';
-                    else cardRef['Colors'] = 'Colorless';
-
-                    // always written, so a missing Scryfall price never leaves a stale one behind
-                    const prices = scryCard.prices || {};
-                    cardRef['Scryfall USD'] = prices.usd || '';
-                    cardRef['Scryfall Foil USD'] = prices.usd_foil || '';
-                },
-
-                /** Rows Scryfall could not price, so the header can say so instead of quietly showing $0. */
-                get unpricedCount() {
-                    return this.cards.filter(c => {
-                        const isFoil = c.Foil && c.Foil !== 'normal';
-                        return !(isFoil ? c['Scryfall Foil USD'] : c['Scryfall USD']) && !c['Scryfall Foil USD'] && !c['Scryfall USD'];
-                    }).length;
-                },
-
-                getBinderValue(binder) {
-                    return this.processedCards
-                        .filter(c => c['Binder Name'] === binder)
-                        .reduce((sum, c) => sum + (c.effectivePrice * c.Quantity), 0);
-                },
-
-                get availableBinders() {
-                    const binders = this.cards.map(c => c['Binder Name']).filter(Boolean);
-                    return [...new Set(binders)].sort();
-                },
-
-                selectAllBinders() {
-                    this.selectedBinders = [...this.availableBinders];
-                    this.invalidateCache();
-                },
-
-                clearAllBinders() {
-                    this.selectedBinders = [];
-                    this.invalidateCache();
-                },
-
-                toggleBinder(binder) {
-                    const index = this.selectedBinders.indexOf(binder);
-                    if (index > -1) {
-                        this.selectedBinders.splice(index, 1);
-                    } else {
-                        this.selectedBinders.push(binder);
-                    }
-                    this.invalidateCache();
-                },
-
-                getBinderCount(binder) {
-                    return this.cards.filter(c => c['Binder Name'] === binder).reduce((sum, c) => sum + (parseInt(c.Quantity) || 1), 0);
-                },
-
-                addTypePill() {
-                    const val = this.typeInput.trim();
-                    if (val && !this.typePills.includes(val)) {
-                        this.typePills.push(val);
-                        this.typeInput = '';
-                        this.invalidateCache();
-                    }
-                },
-                removeTypePill(idx) { this.typePills.splice(idx, 1); this.invalidateCache(); },
-                addOraclePill() {
-                    const val = this.oracleInput.trim();
-                    if (val && !this.oraclePills.includes(val)) {
-                        this.oraclePills.push(val);
-                        this.oracleInput = '';
-                        this.invalidateCache();
-                    }
-                },
-                removeOraclePill(idx) { this.oraclePills.splice(idx, 1); this.invalidateCache(); },
-
-                handleScroll(event) {
-                    const el = event.target;
-                    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 300) {
-                        if (this.displayLimit < this.filteredCards.length) {
-                            this.displayLimit += 40;
-                        }
-                    }
-                },
-
-                invalidateCache() {
-                    this._cachedFiltered = null;
-                    this.displayLimit = 60;
-                },
-
-                toggleColorFilter(col) {
-                    const idx = this.selectedColors.indexOf(col);
-                    if (idx > -1) this.selectedColors.splice(idx, 1);
-                    else this.selectedColors.push(col);
-                    this.invalidateCache();
-                },
-                selectAllColors() {
-                    this.selectedColors = ['White', 'Blue', 'Black', 'Red', 'Green', 'Colorless', 'Multicolor'];
-                    this.invalidateCache();
-                },
-                clearAllColors() {
-                    this.selectedColors = [];
-                    this.invalidateCache();
-                },
-                toggleRarity(r) {
-                    const idx = this.selectedRarities.indexOf(r);
-                    if (idx > -1) this.selectedRarities.splice(idx, 1);
-                    else this.selectedRarities.push(r);
-                    this.invalidateCache();
-                },
-
-                getColorActiveStyle(col) {
-                    switch(col) {
-                        case 'White': return 'bg-amber-100/20 border-amber-300 text-amber-200';
-                        case 'Blue': return 'bg-blue-500/20 border-blue-400 text-blue-300';
-                        case 'Black': return 'bg-purple-950/40 border-purple-600 text-purple-300';
-                        case 'Red': return 'bg-red-500/20 border-red-500 text-red-300';
-                        case 'Green': return 'bg-emerald-500/20 border-emerald-500 text-emerald-300';
-                        case 'Colorless': return 'bg-slate-700/40 border-slate-500 text-slate-300';
-                        case 'Multicolor': return 'bg-amber-500/25 border-amber-400 text-amber-300';
-                        default: return 'bg-slate-800 border-slate-700 text-slate-300';
-                    }
-                },
-                getColorDotStyle(col) {
-                    switch(col) {
-                        case 'White': return 'bg-amber-200';
-                        case 'Blue': return 'bg-blue-400';
-                        case 'Black': return 'bg-purple-400';
-                        case 'Red': return 'bg-red-400';
-                        case 'Green': return 'bg-emerald-400';
-                        case 'Colorless': return 'bg-slate-400';
-                        case 'Multicolor': return 'bg-amber-400';
-                        default: return 'bg-slate-400';
-                    }
-                },
-
-                get processedCards() {
-                    return this.cards.map(c => {
-                        const isFoil = c.Foil && c.Foil !== 'normal';
-                        const price = parseFloat((isFoil ? c['Scryfall Foil USD'] : null) || c['Scryfall USD'] || c['Purchase price'] || 0);
-                        return { ...c, effectivePrice: price, Quantity: parseInt(c.Quantity) || 1 };
-                    });
-                },
-
-                // Global Stats (Unaffected by search / filters)
-                get globalTotalValue() { return this.processedCards.reduce((sum, c) => sum + (c.effectivePrice * c.Quantity), 0); },
-                get globalNormalValue() { return this.processedCards.filter(c => !c.Foil || c.Foil === 'normal').reduce((sum, c) => sum + (c.effectivePrice * c.Quantity), 0); },
-                get globalFoilValue() { return this.processedCards.filter(c => c.Foil && c.Foil !== 'normal').reduce((sum, c) => sum + (c.effectivePrice * c.Quantity), 0); },
-                get globalTotalQuantity() { return this.processedCards.reduce((sum, c) => sum + c.Quantity, 0); },
-                get globalFoilCardsCount() { return this.processedCards.filter(c => c.Foil && c.Foil !== 'normal').reduce((sum, c) => sum + c.Quantity, 0); },
-                get globalUniqueCardsCount() { return this.processedCards.length; },
-                get globalAvgCardValue() { return this.globalUniqueCardsCount === 0 ? 0 : this.globalTotalValue / this.globalUniqueCardsCount; },
-
-                get globalRarityCounts() {
-                    const counts = { mythic: 0, rare: 0, uncommon: 0, common: 0, special: 0 };
-                    this.processedCards.forEach(c => {
-                        const r = (c.Rarity || '').toLowerCase();
-                        if (counts[r] !== undefined) counts[r] += c.Quantity;
-                        else counts.common += c.Quantity;
-                    });
-                    return counts;
-                },
-
-                get globalColorStats() {
-                    const colorNames = ['White', 'Blue', 'Black', 'Red', 'Green', 'Colorless', 'Multicolor'];
-                    const stats = {};
-                    colorNames.forEach(c => { stats[c] = { count: 0, value: 0 }; });
-
-                    this.processedCards.forEach(c => {
-                        const col = c.Colors || 'Colorless';
-                        if (stats[col]) {
-                            stats[col].count += c.Quantity;
-                            stats[col].value += (c.effectivePrice * c.Quantity);
-                        } else {
-                            stats['Colorless'].count += c.Quantity;
-                            stats['Colorless'].value += (c.effectivePrice * c.Quantity);
-                        }
-                    });
-                    return stats;
-                },
-
-                get globalTopCardInfo() {
-                    if (this.processedCards.length === 0) return null;
-                    const maxPrice = Math.max(...this.processedCards.map(c => c.effectivePrice));
-                    const topCards = this.processedCards.filter(c => c.effectivePrice === maxPrice);
-                    if (topCards.length === 0) return null;
-
-                    const primary = topCards[0];
-                    const binders = [...new Set(topCards.map(c => c['Binder Name']).filter(Boolean))];
-                    let bindersText = binders.join(', ');
-                    if (binders.length > 2) bindersText = `${binders.length} Binders (${binders[0]}, etc.)`;
-                    else if (binders.length === 0) bindersText = primary['Set code'] || 'Vault';
-
-                    return { name: primary.Name, price: maxPrice, bindersText: bindersText };
-                },
-
-                get filteredCards() {
-                    const filterKey = `${this.search}_${this.minPrice}_${this.selectedColors.join(',')}_${this.selectedRarities.join(',')}_${this.typePills.join(',')}_${this.oraclePills.join(',')}_${this.selectedBinders.join(',')}_${this.selectedFoil}_${this.sortBy}`;
-                    if (this._cachedFiltered && this._lastFilterKey === filterKey) return this._cachedFiltered;
-
-                    const rawSearch = this.search ? this.search.toLowerCase().trim() : '';
-                    const minP = this.minPrice !== '' ? parseFloat(this.minPrice) : null;
-                    const foi = this.selectedFoil ? this.selectedFoil.toLowerCase() : '';
-                    const activeBinders = this.selectedBinders;
-                    const activeColors = this.selectedColors;
-                    const activeRarities = this.selectedRarities;
-                    const tPills = this.typePills.map(t => t.toLowerCase().trim());
-                    const oPills = this.oraclePills.map(o => o.toLowerCase().trim());
-
-                    const res = this.processedCards.filter(card => {
-                        if (!activeBinders.includes(card['Binder Name'])) return false;
-
-                        if (rawSearch) {
-                            const matchName = (card.Name || '').toLowerCase().includes(rawSearch);
-                            const matchSet = (card['Set code'] || '').toLowerCase().includes(rawSearch);
-                            if (!matchName && !matchSet) return false;
-                        }
-                        const cardColor = card.Colors || 'Colorless';
-                        if (!activeColors.includes(cardColor)) return false;
-                        const cardRarity = (card.Rarity || '').toLowerCase();
-                        if (cardRarity && !activeRarities.includes(cardRarity)) return false;
-
-                        if (tPills.length > 0 && !tPills.every(tp => (card['Type Line'] || '').toLowerCase().includes(tp))) return false;
-                        if (oPills.length > 0 && !oPills.every(op => (card['Oracle Text'] || '').toLowerCase().includes(op))) return false;
-                        if (minP !== null && card.effectivePrice < minP) return false;
-                        if (foi && (!card.Foil || card.Foil.toLowerCase() !== foi)) return false;
-
-                        return true;
-                    }).sort((a, b) => {
-                        if (this.sortBy === 'name_asc') return a.Name.localeCompare(b.Name);
-                        if (this.sortBy === 'price_desc') return b.effectivePrice - a.effectivePrice;
-                        if (this.sortBy === 'price_asc') return a.effectivePrice - b.effectivePrice;
-                        if (this.sortBy === 'qty_desc') return b.Quantity - a.Quantity;
-                        return 0;
-                    });
-
-                    this._cachedFiltered = res;
-                    this._lastFilterKey = filterKey;
-                    return res;
-                },
-
-                get visibleCards() { return this.filteredCards.slice(0, this.displayLimit); },
-
-                get selectedCard() { return this.filteredCards[this.selectedIndex] || null; },
-                isDoubleFaced(card) { return card && (card['Is Double Sided'] === 'True' || card['Is Double Sided'] === true); },
-                toggleCardFace() { if (this.selectedCard && this.isDoubleFaced(this.selectedCard)) this.isCardFlipped = !this.isCardFlipped; },
-                
-                openModalByCard(card) {
-                    const index = this.filteredCards.findIndex(c => c.id === card.id);
-                    if (index !== -1) {
-                        this.selectedIndex = index;
-                        this.isCardFlipped = false;
-                        this.isOracleOpen = true;
-                        this.isModalOpen = true;
-                        setTimeout(() => { this.modalAnimate = true; }, 10);
-                    }
-                },
-                closeModal() {
-                    this.modalAnimate = false;
-                    setTimeout(() => { this.isModalOpen = false; }, 200);
-                },
-                nextCardAnim() {
-                    if (this.filteredCards.length === 0) return;
-                    this.modalAnimate = false;
-                    setTimeout(() => {
-                        this.selectedIndex = (this.selectedIndex + 1) % this.filteredCards.length;
-                        this.isCardFlipped = false;
-                        this.isOracleOpen = true;
-                        this.modalAnimate = true;
-                    }, 150);
-                },
-                prevCardAnim() {
-                    if (this.filteredCards.length === 0) return;
-                    this.modalAnimate = false;
-                    setTimeout(() => {
-                        this.selectedIndex = (this.selectedIndex - 1 + this.filteredCards.length) % this.filteredCards.length;
-                        this.isCardFlipped = false;
-                        this.isOracleOpen = true;
-                        this.modalAnimate = true;
-                    }, 150);
-                },
-                nextCard() { if (this.isModalOpen) this.nextCardAnim(); },
-                prevCard() { if (this.isModalOpen) this.prevCardAnim(); },
-
-                formatCurrency(value) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value || 0); }
-            }
-        }
-    </script>
+  </div>
+</header>
+
+<main id="deck">
+  <p class="empty" id="loading"><span class="spinner"></span>Reading the deck…</p>
+</main>
+
+<footer>
+  A deck shared from DeckForge. The list is carried inside the link itself; nothing is stored here.
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var SECTIONS = [
+    { key: "commander", label: "Commander" },
+    { key: "companion", label: "Companion" },
+    { key: "planeswalker", label: "Planeswalkers" },
+    { key: "battle", label: "Battles" },
+    { key: "creature", label: "Creatures" },
+    { key: "instant", label: "Instants" },
+    { key: "sorcery", label: "Sorceries" },
+    { key: "enchantment", label: "Enchantments" },
+    { key: "artifact", label: "Artifacts" },
+    { key: "land", label: "Lands" },
+    { key: "other", label: "Other" },
+    { key: "side", label: "Sideboard" }
+  ];
+
+  var deck = null;
+  var info = {}; // printing id -> scryfall card
+
+  function money(value) {
+    if (value === null || value === undefined || isNaN(value)) return "—";
+    return "$" + Number(value).toFixed(2);
+  }
+
+  function sectionFor(line, card) {
+    if (line.board === "commander") return "commander";
+    if (line.board === "companion") return "companion";
+    if (line.board === "side") return "side";
+    var type = (card && card.type_line ? card.type_line : "").toLowerCase();
+    if (!type) return "other";
+    if (type.indexOf("planeswalker") >= 0) return "planeswalker";
+    if (type.indexOf("battle") >= 0) return "battle";
+    if (type.indexOf("creature") >= 0) return "creature";
+    if (type.indexOf("instant") >= 0) return "instant";
+    if (type.indexOf("sorcery") >= 0) return "sorcery";
+    if (type.indexOf("enchantment") >= 0) return "enchantment";
+    if (type.indexOf("artifact") >= 0) return "artifact";
+    if (type.indexOf("land") >= 0) return "land";
+    return "other";
+  }
+
+  function priceOf(line, card) {
+    if (!card || !card.prices) return null;
+    var foil = line.foilQuantity >= line.quantity && line.quantity > 0;
+    var plain = parseFloat(card.prices.usd || "");
+    var shiny = parseFloat(card.prices.usd_foil || "");
+    if (foil) return isNaN(shiny) ? (isNaN(plain) ? null : plain) : shiny;
+    return isNaN(plain) ? (isNaN(shiny) ? null : shiny) : plain;
+  }
+
+  function nameOf(line, card) {
+    return (card && card.name) || line.name || "Unknown card";
+  }
+
+  // The printing is the identity: look each line up by its Scryfall id, and only fall back to
+  // set + collector number or a bare name when a payload came from an older build.
+  function identifiersFor(lines) {
+    return lines.map(function (line) {
+      if (line.printingId) return { id: line.printingId };
+      if (line.set && line.number) return { set: line.set.toLowerCase(), collector_number: line.number };
+      return { name: line.name };
+    });
+  }
+
+  function fetchCards(lines) {
+    var batches = [];
+    for (var i = 0; i < lines.length; i += 75) batches.push(lines.slice(i, i + 75));
+    return Promise.all(batches.map(function (batch) {
+      return fetch("https://api.scryfall.com/cards/collection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifiers: identifiersFor(batch) })
+      })
+        .then(function (response) {
+          if (!response.ok) throw new Error("Scryfall answered " + response.status);
+          return response.json();
+        })
+        .then(function (body) { return (body && body.data) || []; })
+        .catch(function () { return []; });
+    })).then(function (groups) {
+      return groups.reduce(function (all, group) { return all.concat(group); }, []);
+    });
+  }
+
+  function readPayload() {
+    function unpack(raw) {
+      raw = decodeURIComponent(raw);
+      var binary = atob(raw.replace(/-/g, "+").replace(/_/g, "/"));
+      var bytes = new Uint8Array(binary.length);
+      for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      if (typeof DecompressionStream === "undefined") {
+        throw new Error("This browser cannot unpack a deck link. Ask for the page file instead.");
+      }
+      return new Blob([bytes]).stream()
+        .pipeThrough(new DecompressionStream("gzip"))
+        .getReader().read()
+        .then(function (chunk) {
+          return JSON.parse(new TextDecoder().decode(chunk.value));
+        });
+    }
+
+    if (window.DECKFORGE_SEED) return Promise.resolve(window.DECKFORGE_SEED);
+
+    var raw = new URLSearchParams(window.location.search).get("d");
+    if (!raw) {
+      var hash = window.location.hash || "";
+      var at = hash.indexOf("d=");
+      if (at >= 0) raw = hash.slice(at + 2).split("&")[0];
+    }
+    return raw ? unpack(raw) : Promise.reject(new Error("no-deck"));
+  }
+
+  // Payload lines arrive as [qty, set, number, foilQty, name, board, printingId].
+  function normalise(seed) {
+    var lines = (seed.lines || []).map(function (raw, index) {
+      if (!Array.isArray(raw)) {
+        return { quantity: 1, name: raw.name || "", set: "", number: "", foilQuantity: 0, board: "main", printingId: null, index: index };
+      }
+      var quantity = parseInt(raw[0], 10) || 1;
+      return {
+        quantity: quantity,
+        set: (raw[1] || "").toUpperCase(),
+        number: raw[2] ? String(raw[2]) : "",
+        foilQuantity: parseInt(raw[3], 10) || 0,
+        name: raw[4] || "",
+        board: raw[5] || "main",
+        printingId: raw[6] || null,
+        index: index
+      };
+    });
+    return {
+      name: seed.name || "Shared deck",
+      formatLabel: seed.formatLabel || seed.format || "",
+      commander: seed.commander || null,
+      commander2: seed.commander2 || null,
+      lines: lines
+    };
+  }
+
+  function buildSection(key, entries) {
+    var heading = document.createElement("h2");
+    var count = entries.reduce(function (total, entry) { return total + entry.line.quantity; }, 0);
+    var label = SECTIONS.filter(function (s) { return s.key === key; })[0].label;
+    heading.textContent = label;
+    var tally = document.createElement("span");
+    tally.textContent = count;
+    heading.appendChild(tally);
+
+    var fragment = document.createDocumentFragment();
+    fragment.appendChild(heading);
+
+    entries.forEach(function (entry) {
+      var line = entry.line;
+      var card = entry.card;
+
+      var row = document.createElement("div");
+      row.className = "card";
+
+      var qty = document.createElement("div");
+      qty.className = "qty";
+      qty.textContent = line.quantity;
+      row.appendChild(qty);
+
+      if (card && card.image_uris && card.image_uris.art_crop) {
+        var art = document.createElement("img");
+        art.className = "art";
+        art.loading = "lazy";
+        art.alt = "";
+        art.src = card.image_uris.art_crop;
+        row.appendChild(art);
+      } else {
+        var blank = document.createElement("div");
+        blank.className = "art";
+        row.appendChild(blank);
+      }
+
+      var nameCell = document.createElement("div");
+      nameCell.className = "name";
+      var text = document.createElement("span");
+      text.textContent = nameOf(line, card);
+      nameCell.appendChild(text);
+      if (line.foilQuantity >= line.quantity && line.quantity > 0) {
+        var foil = document.createElement("span");
+        foil.className = "foil";
+        foil.textContent = "foil";
+        nameCell.appendChild(foil);
+      }
+      row.appendChild(nameCell);
+
+      var right = document.createElement("div");
+      right.className = "right";
+      var cost = card && card.mana_cost ? card.mana_cost.replace(/[{}]/g, "") : "";
+      if (cost) {
+        var costEl = document.createElement("div");
+        costEl.className = "cost";
+        costEl.textContent = cost;
+        right.appendChild(costEl);
+      }
+      var setEl = document.createElement("div");
+      setEl.className = "set";
+      var setLabel = line.set + (line.number ? " " + line.number : "");
+      var price = priceOf(line, card);
+      if (price !== null && price > 0) {
+        setEl.textContent = setLabel ? setLabel + " · " + money(price) : money(price);
+      } else {
+        setEl.textContent = setLabel;
+      }
+      right.appendChild(setEl);
+      row.appendChild(right);
+
+      fragment.appendChild(row);
+    });
+    return fragment;
+  }
+
+  function render() {
+    if (!deck) return;
+    var deckEl = document.getElementById("deck");
+    deckEl.innerHTML = "";
+
+    document.getElementById("deck-name").textContent = deck.name;
+    document.title = deck.name + " · DeckForge";
+
+    var total = deck.lines.reduce(function (sum, line) { return sum + line.quantity; }, 0);
+    var meta = [];
+    if (deck.formatLabel) meta.push(deck.formatLabel);
+    meta.push(total + (total === 1 ? " card" : " cards"));
+    if (deck.commander) {
+      var commanders = deck.commander2 ? deck.commander + " + " + deck.commander2 : deck.commander;
+      meta.push("commander " + commanders);
+    }
+    document.getElementById("deck-meta").textContent = meta.join(" · ");
+
+    var groups = {};
+    deck.lines.forEach(function (line) {
+      var card = line.printingId ? info[line.printingId] : null;
+      var key = sectionFor(line, card);
+      (groups[key] = groups[key] || []).push({ line: line, card: card });
+    });
+
+    SECTIONS.forEach(function (section) {
+      var entries = groups[section.key];
+      if (!entries) return;
+      entries.sort(function (a, b) {
+        var ma = a.card && typeof a.card.cmc === "number" ? a.card.cmc : 99;
+        var mb = b.card && typeof b.card.cmc === "number" ? b.card.cmc : 99;
+        if (ma !== mb) return ma - mb;
+        return nameOf(a.line, a.card).localeCompare(nameOf(b.line, b.card));
+      });
+      document.getElementById("deck").appendChild(buildSection(section.key, entries));
+    });
+
+    var value = 0;
+    var priced = 0;
+    deck.lines.forEach(function (line) {
+      var card = line.printingId ? info[line.printingId] : null;
+      var price = priceOf(line, card);
+      if (price !== null) { value += price * line.quantity; priced += line.quantity; }
+    });
+    var valueEl = document.getElementById("deck-value");
+    if (priced === 0) {
+      valueEl.innerHTML = "<b>—</b> no prices available";
+    } else {
+      valueEl.innerHTML = "<b>" + money(value) + "</b> market value" +
+        (priced < total ? " (" + (total - priced) + " unpriced)" : "");
+    }
+  }
+
+  function copyList() {
+    if (!deck) return;
+    var lines = deck.lines.map(function (line) {
+      var card = line.printingId ? info[line.printingId] : null;
+      return line.quantity + " " + nameOf(line, card);
+    });
+    var text = deck.name + "\n\n" + lines.join("\n");
+    var button = document.getElementById("copy-list");
+    function done(label) {
+      button.textContent = label;
+      setTimeout(function () { button.textContent = "Copy list"; }, 1400);
+    }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(function () { done("Copied"); }, function () { done("Copy failed"); });
+    } else {
+      done("Copy failed");
+    }
+  }
+
+  function showError(message) {
+    var main = document.getElementById("deck");
+    main.innerHTML = "";
+    var note = document.createElement("p");
+    note.className = "note";
+    note.innerHTML = message;
+    main.appendChild(note);
+  }
+
+  document.getElementById("toggle-art").addEventListener("click", function () {
+    var on = document.body.classList.toggle("art");
+    this.textContent = on ? "Hide art" : "Show art";
+    try { localStorage.setItem("deckforge.art", on ? "1" : "0"); } catch (e) {}
+  });
+  document.getElementById("copy-list").addEventListener("click", copyList);
+
+  if (localStorage.getItem("deckforge.art") === "1") {
+    document.body.classList.add("art");
+    document.getElementById("toggle-art").textContent = "Hide art";
+  }
+
+  readPayload().then(function (seed) {
+    deck = normalise(seed);
+    render(); // first paint from the link alone, so a slow network still shows the list
+    return fetchCards(deck.lines).then(function (cards) {
+      cards.forEach(function (card) { if (card && card.id) info[card.id] = card; });
+      render();
+    });
+  }).catch(function (error) {
+    if (error && error.message === "no-deck") {
+      showError("<b>No deck in this link.</b><br>A deck link carries the list inside the address " +
+        "itself. Open the one you were sent, or share a deck from the DeckForge app.");
+    } else {
+      showError("<b>This link could not be read.</b><br>" + (error && error.message ? error.message : "Unknown error"));
+    }
+  });
+})();
+</script>
 </body>
 </html>

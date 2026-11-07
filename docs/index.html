@@ -51,12 +51,19 @@
   }
   .value { font-size: 12.5px; color: var(--muted); }
   .value b { color: var(--accent); font-weight: 700; font-size: 15px; }
-  button {
+  /* The link beside the buttons wears the same chip: an anchor styled only by its [type] reads as
+     bare text, which is exactly how it looked before. */
+  button, .head-actions a {
     font-family: inherit; font-size: 12px; color: var(--text);
     background: #1b2436; border: 1px solid var(--line);
     border-radius: 8px; padding: 7px 11px; cursor: pointer;
+    text-decoration: none; display: inline-flex; align-items: center;
+    gap: 6px; line-height: 1.2; white-space: nowrap;
   }
-  button:hover { border-color: #8a6520; color: var(--accent); }
+  button:hover, .head-actions a:hover { border-color: #8a6520; color: var(--accent); }
+  button:active, .head-actions a:active { transform: translateY(1px); }
+  /* inline-flex above would otherwise beat the browser's own [hidden] rule. */
+  [hidden] { display: none !important; }
 
   main { padding: 0 14px; }
   h2 {
@@ -163,7 +170,16 @@
   }
   .v-info { text-align: center; padding-top: 6px; }
   .head-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
-  .head-actions a[type="button"] { text-decoration: none; display: inline-flex; align-items: center; }
+  #vendors { margin-top: 4px; }
+  .vendor-row { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .vendor {
+    display: flex; flex-direction: column; gap: 2px; text-decoration: none;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 11px 12px; color: var(--text);
+  }
+  .vendor:hover { border-color: #8a6520; }
+  .vendor b { font-size: 13px; }
+  .vendor small { color: var(--muted); font-size: 11px; line-height: 1.35; }
   .v-name { font-size: 15px; font-weight: 600; margin: 0 0 3px; overflow-wrap: anywhere; }
   .v-line { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
   .v-line + .v-line { margin-top: 2px; }
@@ -180,11 +196,28 @@
       <div class="value" id="deck-value"><span class="spin"></span>reading the deck…</div>
       <div class="head-actions">
         <button id="copy-list" type="button">Copy list</button>
+        <button id="buy" type="button" hidden>Buy cards</button>
         <a id="open-app" type="button" hidden>Open in DeckForge</a>
       </div>
     </div>
   </div>
 </header>
+
+<section class="wrap" id="vendors" hidden>
+  <h2>Buy this deck <span id="vendors-note"></span></h2>
+  <div class="vendor-row">
+    <a class="vendor" data-vendor="manapool" href="#" target="_blank" rel="noopener">
+      <b>Mana Pool</b><small>opens with the whole list loaded</small>
+    </a>
+    <a class="vendor" data-vendor="tcgplayer" href="https://www.tcgplayer.com/massentry?productline=Magic" target="_blank" rel="noopener">
+      <b>TCGplayer</b><small>Mass Entry, list on your clipboard</small>
+    </a>
+    <a class="vendor" data-vendor="cardkingdom" href="https://www.cardkingdom.com/builder" target="_blank" rel="noopener">
+      <b>Card Kingdom</b><small>deck builder, list on your clipboard</small>
+    </a>
+  </div>
+  <p class="note">Prices here come from Scryfall. The stores price their own stock, so expect the total to move.</p>
+</section>
 
 <main class="wrap" id="deck">
   <p class="note"><span class="spin"></span>Reading the deck…</p>
@@ -696,6 +729,69 @@
     });
   }
 
+  // ------------------------------------------------------------- buying the deck
+
+  /**
+   * Each store wants the list in its own shape, so it is built once per shop rather than hoping
+   * one format fits all: Mana Pool and Card Kingdom read "qty Name", TCGplayer's mass entry reads
+   * "qty Name [SET] number".
+   */
+  function buyList(style) {
+    var lines = [];
+    deck.lines.forEach(function (line) {
+      var name = nameOf(line, cardFor(line));
+      if (style === "tcg" && line.set) {
+        lines.push(line.quantity + " " + name + " [" + line.set + "]" + (line.number ? " " + line.number : ""));
+      } else {
+        lines.push(line.quantity + " " + name);
+      }
+    });
+    return lines.join("\n");
+  }
+
+  /**
+   * Mana Pool takes a whole deck in the address: base64 of the pasted list, then URL-encoded.
+   * It is the only one of the three that arrives prefilled, so it leads.
+   */
+  function manaPoolUrl() {
+    var text = buyList("plain");
+    var bytes = new TextEncoder().encode(text), binary = "";
+    for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return "https://manapool.com/add-deck?deck=" + encodeURIComponent(btoa(binary));
+  }
+
+  function wireBuy() {
+    var button = document.getElementById("buy");
+    if (!button) return;
+    button.hidden = false;
+    var panel = document.getElementById("vendors");
+
+    button.addEventListener("click", function () {
+      var showing = panel.hidden;
+      panel.hidden = !showing;
+      button.textContent = showing ? "Hide buy options" : "Buy cards";
+      if (showing) {
+        document.querySelector('[data-vendor="manapool"]').href = manaPoolUrl();
+        document.getElementById("vendors-note").textContent = deck.lines.length + " cards";
+        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    });
+
+    Array.prototype.forEach.call(panel.querySelectorAll(".vendor"), function (link) {
+      if (link.getAttribute("data-vendor") === "manapool") return; // already carries the list
+      link.addEventListener("click", function () {
+        // The other two read a paste, not an address, so the list goes to the clipboard first.
+        var text = buyList(link.getAttribute("data-vendor") === "tcgplayer" ? "tcg" : "plain");
+        if (navigator.clipboard) navigator.clipboard.writeText(text);
+        var note = document.getElementById("vendors-note");
+        note.textContent = "list copied, paste it in";
+        setTimeout(function () {
+          note.textContent = deck.lines.length + " cards";
+        }, 4000);
+      });
+    });
+  }
+
   // ------------------------------------------------------- handing the deck back
 
   /**
@@ -804,6 +900,7 @@
     } catch (error) {
       plainList("Showing the list from the link alone (" + (error && error.message ? error.message : "render failed") + ").");
     }
+    wireBuy();
     return fetchCards(deck.lines).then(function (cards) {
       cards.forEach(function (card) {
         if (!card || !card.id) return;

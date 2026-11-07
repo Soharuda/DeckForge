@@ -226,7 +226,7 @@
   ];
 
   var deck = null;      // the deck from the link
-  var info = {};        // printing id -> scryfall card
+  var info = {};        // printing (Scryfall id, or set + number) -> scryfall card
   var display = [];     // every row in the order it is drawn, so the viewer walks the same list
   var lookedUp = false;
   var viewerAt = -1;
@@ -241,8 +241,15 @@
     if (text !== undefined) node.textContent = text;
     return node;
   }
+  // A compact line names its printing by set + collector number instead of Scryfall's id, so
+  // both keys are indexed and either one finds the card.
+  function printingKey(set, number) {
+    return "p:" + (set || "").toLowerCase() + "|" + (number || "");
+  }
   function cardFor(line) {
-    return line.printingId ? info[line.printingId] : null;
+    if (line.printingId && info[line.printingId]) return info[line.printingId];
+    if (line.set && line.number) return info[printingKey(line.set, line.number)] || null;
+    return null;
   }
   function pictures(card) {
     return (card && card.image_uris) || null;
@@ -740,7 +747,13 @@
       plainList("Showing the list from the link alone (" + (error && error.message ? error.message : "render failed") + ").");
     }
     return fetchCards(deck.lines).then(function (cards) {
-      cards.forEach(function (card) { if (card && card.id) info[card.id] = card; });
+      cards.forEach(function (card) {
+        if (!card || !card.id) return;
+        info[card.id] = card;
+        if (card.set && card.collector_number) {
+          info[printingKey(card.set, card.collector_number)] = card;
+        }
+      });
       lookedUp = true;
       try {
         render();

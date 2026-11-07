@@ -8,12 +8,11 @@
   :root {
     color-scheme: dark;
     --bg: #0b0f19;
-    --panel: #121826;
     --line: #23304a;
     --text: #e8edf7;
     --muted: #93a1bd;
+    --faint: #6f7d99;
     --accent: #f5b544;
-    --accent-dim: #8a6520;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -21,9 +20,12 @@
     background: var(--bg);
     color: var(--text);
     font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    padding-bottom: 48px;
+    padding-bottom: 40px;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
   }
-  a { color: var(--accent); }
+  body.locked { overflow: hidden; }
+  .wrap { max-width: 760px; margin: 0 auto; }
 
   header {
     position: sticky;
@@ -31,119 +33,133 @@
     z-index: 5;
     background: linear-gradient(180deg, #131a29 0%, #101725 100%);
     border-bottom: 1px solid var(--line);
-    padding: 14px 16px 12px;
+    padding: 12px 14px 10px;
   }
-  .wrap { max-width: 760px; margin: 0 auto; }
   .brand {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--muted);
+    display: flex; align-items: baseline; gap: 7px;
+    font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
   }
   .brand b { color: var(--accent); font-weight: 700; }
   h1 {
-    margin: 6px 0 2px;
-    font-size: 21px;
-    line-height: 1.2;
-    font-weight: 700;
+    margin: 5px 0 2px; font-size: 20px; line-height: 1.2; font-weight: 700;
     overflow-wrap: anywhere;
   }
-  .meta { color: var(--muted); font-size: 13px; }
-  .meta em { color: var(--text); font-style: normal; }
+  .meta { color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; }
   .head-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-top: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-top: 8px; flex-wrap: wrap;
   }
-  .value { font-size: 13px; color: var(--muted); }
+  .value { font-size: 12.5px; color: var(--muted); }
   .value b { color: var(--accent); font-weight: 700; font-size: 15px; }
-  .actions { display: flex; gap: 8px; }
   button {
-    background: #1b2436;
-    color: var(--text);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 7px 11px;
-    font-size: 12px;
-    font-family: inherit;
+    font-family: inherit; font-size: 12px; color: var(--text);
+    background: #1b2436; border: 1px solid var(--line);
+    border-radius: 8px; padding: 7px 11px; cursor: pointer;
+  }
+  button:hover { border-color: #8a6520; color: var(--accent); }
+
+  main { padding: 0 14px; }
+  h2 {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    margin: 20px 0 6px; padding-bottom: 5px;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+    border-bottom: 1px solid var(--line);
+  }
+  h2 span { font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--faint); }
+
+  .row {
+    display: grid;
+    grid-template-columns: 22px 46px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 5px 0;
+    border: 0;
+    border-bottom: 1px solid #171f2e;
+    background: none;
+    border-radius: 0;
+    text-align: left;
+    color: inherit;
+    font-size: 14px;
     cursor: pointer;
   }
-  button:hover { border-color: var(--accent-dim); color: var(--accent); }
+  .row:hover { background: #101725; }
+  .row:active { background: #141c2b; }
+  .qty { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12.5px; text-align: right; }
+  .thumb {
+    width: 46px; height: 34px; border-radius: 5px;
+    object-fit: cover; object-position: center 25%;
+    background: #182031; display: block;
+  }
+  .name {
+    display: flex; align-items: center; gap: 6px;
+    min-width: 0; overflow: hidden;
+  }
+  .name em {
+    font-style: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .foil {
+    flex: 0 0 auto; color: #7fb2ff; font-size: 10px;
+    border: 1px solid #2b4a7a; border-radius: 4px; padding: 0 3px;
+  }
+  .price { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-  main { max-width: 760px; margin: 0 auto; padding: 0 16px; }
-  h2 {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    margin: 22px 0 8px;
-    font-size: 12px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-weight: 600;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 6px;
-  }
-  h2 span { font-weight: 400; letter-spacing: 0; text-transform: none; color: #6f7d99; }
-
-  .card {
-    display: grid;
-    grid-template-columns: 34px 1fr auto;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 0;
-    border-bottom: 1px solid #171f2e;
-  }
-  .qty { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13px; text-align: right; }
-  .name { display: flex; align-items: center; gap: 7px; min-width: 0; }
-  .name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .foil { color: #7fb2ff; font-size: 11px; border: 1px solid #2b4a7a; border-radius: 4px; padding: 0 3px; }
-  .right { text-align: right; color: var(--muted); font-size: 12px; white-space: nowrap; }
-  .cost { color: #b9c6dd; font-size: 12px; letter-spacing: 0.02em; }
-  .set { color: #6f7d99; font-size: 11px; }
-  .art {
-    display: none;
-    width: 34px;
-    height: 34px;
-    border-radius: 5px;
-    object-fit: cover;
-    object-position: center 22%;
-    background: #1a2233;
-  }
-  body.art .art { display: block; }
-  body.art .card { grid-template-columns: 26px 34px 1fr auto; }
-  .empty, .note {
-    margin: 18px 0;
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.6;
-  }
+  .note { margin: 16px 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
   .note b { color: var(--text); }
-  footer {
-    max-width: 760px;
-    margin: 26px auto 0;
-    padding: 0 16px;
-    color: #55637d;
-    font-size: 12px;
-  }
-  .spinner {
-    display: inline-block;
-    width: 11px;
-    height: 11px;
-    border: 2px solid var(--line);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    vertical-align: -1px;
-    margin-right: 6px;
+  footer { padding: 22px 14px 0; color: #55637d; font-size: 11.5px; }
+  .spin {
+    display: inline-block; width: 10px; height: 10px; margin-right: 6px;
+    border: 2px solid var(--line); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -1px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* The card viewer: full screen, one card at a time, swipe or arrow between them. */
+  #viewer {
+    position: fixed; inset: 0; z-index: 40;
+    display: none;
+    background: rgba(6, 9, 15, 0.965);
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+  }
+  #viewer.open { display: flex; flex-direction: column; }
+  .v-top {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; color: var(--muted); font-size: 12px;
+  }
+  .v-close {
+    background: #1b2436; border: 1px solid var(--line); color: var(--text);
+    border-radius: 8px; width: 32px; height: 32px; font-size: 16px; line-height: 1;
+    cursor: pointer; flex: 0 0 auto;
+  }
+  .v-stage {
+    flex: 1 1 auto; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 8px 0;
+    touch-action: pan-y;
+  }
+  .v-nav {
+    flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%;
+    background: #1b2436cc; border: 1px solid var(--line); color: var(--text);
+    font-size: 18px; line-height: 1; cursor: pointer;
+  }
+  .v-nav:disabled { opacity: 0.25; cursor: default; }
+  .v-card {
+    max-width: 100%; max-height: 100%;
+    border-radius: 12px; box-shadow: 0 12px 40px #000a;
+    object-fit: contain; background: #131a29;
+  }
+  .v-blank {
+    width: min(78vw, 320px); aspect-ratio: 488 / 680;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px dashed var(--line); border-radius: 12px;
+    color: var(--faint); font-size: 12px; text-align: center; padding: 16px;
+  }
+  .v-info { flex: 0 0 auto; text-align: center; padding-top: 6px; }
+  .v-name { font-size: 15px; font-weight: 600; margin: 0 0 3px; overflow-wrap: anywhere; }
+  .v-line { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+  .v-line + .v-line { margin-top: 2px; }
+  .v-line b { color: var(--accent); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -153,22 +169,36 @@
     <h1 id="deck-name">Shared deck</h1>
     <div class="meta" id="deck-meta"></div>
     <div class="head-row">
-      <div class="value" id="deck-value"></div>
-      <div class="actions">
-        <button id="toggle-art" type="button">Show art</button>
-        <button id="copy-list" type="button">Copy list</button>
-      </div>
+      <div class="value" id="deck-value"><span class="spin"></span>reading the deck…</div>
+      <button id="copy-list" type="button">Copy list</button>
     </div>
   </div>
 </header>
 
-<main id="deck">
-  <p class="empty" id="loading"><span class="spinner"></span>Reading the deck…</p>
+<main class="wrap" id="deck">
+  <p class="note"><span class="spin"></span>Reading the deck…</p>
 </main>
 
-<footer>
+<footer class="wrap">
   A deck shared from DeckForge. The list is carried inside the link itself; nothing is stored here.
 </footer>
+
+<div id="viewer" aria-hidden="true" role="dialog" aria-label="Card viewer">
+  <div class="v-top">
+    <span id="v-count"></span>
+    <button class="v-close" id="v-close" type="button" aria-label="Close">✕</button>
+  </div>
+  <div class="v-stage" id="v-stage">
+    <button class="v-nav" id="v-prev" type="button" aria-label="Previous card">‹</button>
+    <div id="v-picture" style="display:flex;align-items:center;justify-content:center;min-width:0;max-height:100%"></div>
+    <button class="v-nav" id="v-next" type="button" aria-label="Next card">›</button>
+  </div>
+  <div class="v-info">
+    <p class="v-name" id="v-name"></p>
+    <p class="v-line" id="v-type"></p>
+    <p class="v-line" id="v-facts"></p>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -189,12 +219,40 @@
     { key: "side", label: "Sideboard" }
   ];
 
-  var deck = null;
-  var info = {}; // printing id -> scryfall card
+  var deck = null;      // the deck from the link
+  var info = {};        // printing id -> scryfall card
+  var display = [];     // every row in the order it is drawn, so the viewer walks the same list
+  var lookedUp = false;
+  var viewerAt = -1;
 
   function money(value) {
     if (value === null || value === undefined || isNaN(value)) return "—";
     return "$" + Number(value).toFixed(2);
+  }
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+  function cardFor(line) {
+    return line.printingId ? info[line.printingId] : null;
+  }
+  function pictures(card) {
+    return (card && card.image_uris) || null;
+  }
+  function nameOf(line, card) {
+    return (card && card.name) || line.name || "Unknown card";
+  }
+  function isFoilLine(line) {
+    return line.foilQuantity >= line.quantity && line.quantity > 0;
+  }
+  function priceOf(line, card) {
+    if (!card || !card.prices) return null;
+    var plain = parseFloat(card.prices.usd || "");
+    var shiny = parseFloat(card.prices.usd_foil || "");
+    if (isFoilLine(line)) return isNaN(shiny) ? (isNaN(plain) ? null : plain) : shiny;
+    return isNaN(plain) ? (isNaN(shiny) ? null : shiny) : plain;
   }
 
   function sectionFor(line, card) {
@@ -212,19 +270,6 @@
     if (type.indexOf("artifact") >= 0) return "artifact";
     if (type.indexOf("land") >= 0) return "land";
     return "other";
-  }
-
-  function priceOf(line, card) {
-    if (!card || !card.prices) return null;
-    var foil = line.foilQuantity >= line.quantity && line.quantity > 0;
-    var plain = parseFloat(card.prices.usd || "");
-    var shiny = parseFloat(card.prices.usd_foil || "");
-    if (foil) return isNaN(shiny) ? (isNaN(plain) ? null : plain) : shiny;
-    return isNaN(plain) ? (isNaN(shiny) ? null : shiny) : plain;
-  }
-
-  function nameOf(line, card) {
-    return (card && card.name) || line.name || "Unknown card";
   }
 
   // The printing is the identity: look each line up by its Scryfall id, and only fall back to
@@ -304,7 +349,8 @@
   function normalise(seed) {
     var lines = (seed.lines || []).map(function (raw, index) {
       if (!Array.isArray(raw)) {
-        return { quantity: 1, name: raw.name || "", set: "", number: "", foilQuantity: 0, board: "main", printingId: null, index: index };
+        return { quantity: 1, name: raw.name || "", set: "", number: "", foilQuantity: 0,
+                 board: "main", printingId: null, index: index };
       }
       var quantity = parseInt(raw[0], 10) || 1;
       return {
@@ -327,88 +373,84 @@
     };
   }
 
-  function buildSection(key, entries, pending) {
-    var heading = document.createElement("h2");
-    var count = entries.reduce(function (total, entry) { return total + entry.line.quantity; }, 0);
-    var label = pending && key === "other"
-      ? "Cards"
-      : SECTIONS.filter(function (s) { return s.key === key; })[0].label;
-    heading.textContent = label;
-    var tally = document.createElement("span");
-    tally.textContent = count;
-    heading.appendChild(tally);
+  // ---------------------------------------------------------------- list
 
+  // Art is fetched only as a row comes near the screen: a hundred full-size crops decoded at once
+  // is what makes a phone browser give up and paint the page black.
+  var artWatcher = null;
+  function watchArt() {
+    if (typeof IntersectionObserver === "undefined") {
+      return function (img, url) { img.src = url; };
+    }
+    if (!artWatcher) {
+      artWatcher = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var img = entry.target;
+          if (img.dataset.src) {
+            img.src = img.dataset.src;
+            img.removeAttribute("data-src");
+          }
+          artWatcher.unobserve(img);
+        });
+      }, { rootMargin: "400px 0px" });
+    }
+    return function (img, url) {
+      img.dataset.src = url;
+      artWatcher.observe(img);
+    };
+  }
+  var lazyArt = watchArt();
+
+  function artThumb(line) {
+    var pic = pictures(cardFor(line));
+    var url = pic && pic.art_crop;
+    var img = el("img", "thumb");
+    img.alt = "";
+    img.width = 46;
+    img.height = 34;
+    img.decoding = "async";
+    img.loading = "lazy";
+    if (url) lazyArt(img, url);
+    return img;
+  }
+
+  function buildRow(entry) {
+    var line = entry.line;
+    var card = entry.card;
+    var row = el("button", "row");
+    row.type = "button";
+
+    row.appendChild(el("div", "qty", String(line.quantity)));
+    row.appendChild(artThumb(line));
+
+    var nameCell = el("div", "name");
+    nameCell.appendChild(el("em", null, nameOf(line, card)));
+    if (isFoilLine(line)) nameCell.appendChild(el("span", "foil", "foil"));
+    row.appendChild(nameCell);
+
+    var price = priceOf(line, card);
+    row.appendChild(el("div", "price", price === null ? "" : money(price)));
+
+    row.addEventListener("click", function () { openViewer(entry.position); });
+    return row;
+  }
+
+  function buildSection(section, entries) {
     var fragment = document.createDocumentFragment();
+    var heading = el("h2", null, lookedUp || section.key !== "other" ? section.label : "Cards");
+    heading.appendChild(el("span", null,
+      String(entries.reduce(function (total, entry) { return total + entry.line.quantity; }, 0))));
     fragment.appendChild(heading);
-
-    entries.forEach(function (entry) {
-      var line = entry.line;
-      var card = entry.card;
-
-      var row = document.createElement("div");
-      row.className = "card";
-
-      var qty = document.createElement("div");
-      qty.className = "qty";
-      qty.textContent = line.quantity;
-      row.appendChild(qty);
-
-      if (card && card.image_uris && card.image_uris.art_crop) {
-        var art = document.createElement("img");
-        art.className = "art";
-        art.loading = "lazy";
-        art.alt = "";
-        art.src = card.image_uris.art_crop;
-        row.appendChild(art);
-      } else {
-        var blank = document.createElement("div");
-        blank.className = "art";
-        row.appendChild(blank);
-      }
-
-      var nameCell = document.createElement("div");
-      nameCell.className = "name";
-      var text = document.createElement("span");
-      text.textContent = nameOf(line, card);
-      nameCell.appendChild(text);
-      if (line.foilQuantity >= line.quantity && line.quantity > 0) {
-        var foil = document.createElement("span");
-        foil.className = "foil";
-        foil.textContent = "foil";
-        nameCell.appendChild(foil);
-      }
-      row.appendChild(nameCell);
-
-      var right = document.createElement("div");
-      right.className = "right";
-      var cost = card && card.mana_cost ? card.mana_cost.replace(/[{}]/g, "") : "";
-      if (cost) {
-        var costEl = document.createElement("div");
-        costEl.className = "cost";
-        costEl.textContent = cost;
-        right.appendChild(costEl);
-      }
-      var setEl = document.createElement("div");
-      setEl.className = "set";
-      var setLabel = line.set + (line.number ? " " + line.number : "");
-      var price = priceOf(line, card);
-      if (price !== null && price > 0) {
-        setEl.textContent = setLabel ? setLabel + " · " + money(price) : money(price);
-      } else {
-        setEl.textContent = setLabel;
-      }
-      right.appendChild(setEl);
-      row.appendChild(right);
-
-      fragment.appendChild(row);
-    });
+    entries.forEach(function (entry) { fragment.appendChild(buildRow(entry)); });
     return fragment;
   }
 
-  function render(lookedUp) {
+  function render() {
     if (!deck) return;
-    var deckEl = document.getElementById("deck");
-    deckEl.innerHTML = "";
+    var main = document.getElementById("deck");
+    main.innerHTML = "";
+    display = [];
 
     document.getElementById("deck-name").textContent = deck.name;
     document.title = deck.name + " · DeckForge";
@@ -418,16 +460,14 @@
     if (deck.formatLabel) meta.push(deck.formatLabel);
     meta.push(total + (total === 1 ? " card" : " cards"));
     if (deck.commander) {
-      var commanders = deck.commander2 ? deck.commander + " + " + deck.commander2 : deck.commander;
-      meta.push("commander " + commanders);
+      meta.push("commander " + (deck.commander2 ? deck.commander + " + " + deck.commander2 : deck.commander));
     }
     document.getElementById("deck-meta").textContent = meta.join(" · ");
 
     var groups = {};
     deck.lines.forEach(function (line) {
-      var card = line.printingId ? info[line.printingId] : null;
-      var key = sectionFor(line, card);
-      (groups[key] = groups[key] || []).push({ line: line, card: card });
+      var key = sectionFor(line, cardFor(line));
+      (groups[key] = groups[key] || []).push({ line: line, card: cardFor(line) });
     });
 
     SECTIONS.forEach(function (section) {
@@ -439,19 +479,22 @@
         if (ma !== mb) return ma - mb;
         return nameOf(a.line, a.card).localeCompare(nameOf(b.line, b.card));
       });
-      document.getElementById("deck").appendChild(buildSection(section.key, entries, !lookedUp));
+      entries.forEach(function (entry) {
+        entry.position = display.length;
+        display.push(entry);
+      });
+      main.appendChild(buildSection(section, entries));
     });
 
     var value = 0;
     var priced = 0;
     deck.lines.forEach(function (line) {
-      var card = line.printingId ? info[line.printingId] : null;
-      var price = priceOf(line, card);
+      var price = priceOf(line, cardFor(line));
       if (price !== null) { value += price * line.quantity; priced += line.quantity; }
     });
     var valueEl = document.getElementById("deck-value");
     if (!lookedUp) {
-      valueEl.innerHTML = "<span class=\"spinner\"></span>pricing the deck…";
+      valueEl.innerHTML = '<span class="spin"></span>pricing the deck…';
     } else if (priced === 0) {
       valueEl.innerHTML = "<b>—</b> Scryfall did not answer";
     } else {
@@ -460,11 +503,163 @@
     }
   }
 
+  // -------------------------------------------------------------- viewer
+
+  function viewerEls() {
+    return {
+      box: document.getElementById("viewer"),
+      picture: document.getElementById("v-picture"),
+      count: document.getElementById("v-count"),
+      name: document.getElementById("v-name"),
+      type: document.getElementById("v-type"),
+      facts: document.getElementById("v-facts"),
+      prev: document.getElementById("v-prev"),
+      next: document.getElementById("v-next")
+    };
+  }
+
+  function paintViewer() {
+    var els = viewerEls();
+    var entry = display[viewerAt];
+    if (!entry) return;
+    var line = entry.line;
+    var card = entry.card;
+    var pic = pictures(card);
+
+    els.picture.innerHTML = "";
+    if (pic && (pic.normal || pic.large || pic.art_crop || pic.small)) {
+      var img = el("img", "v-card");
+      img.alt = nameOf(line, card);
+      img.src = pic.normal || pic.large || pic.art_crop || pic.small;
+      els.picture.appendChild(img);
+    } else {
+      var blank = el("div", "v-blank", card ? "No picture for this printing" : "No card data from Scryfall");
+      els.picture.appendChild(blank);
+    }
+
+    els.count.textContent = (viewerAt + 1) + " / " + display.length;
+    els.name.textContent = nameOf(line, card);
+
+    if (card) {
+      var bits = [];
+      if (line.quantity > 1) bits.push(line.quantity + " copies");
+      if (isFoilLine(line)) bits.push("foil");
+      if (card.mana_cost) bits.push(card.mana_cost.replace(/[{}]/g, ""));
+      els.type.textContent = card.type_line || "";
+      els.type.style.display = card.type_line ? "" : "none";
+
+      var facts = [];
+      var price = priceOf(line, card);
+      if (price !== null && price > 0) facts.push("$" + Number(price).toFixed(2));
+      var setLine = line.set + (line.number ? " · " + line.number : "");
+      if (setLine) facts.push(setLine);
+      if (bits.length) facts.push(bits.join(" · "));
+      els.facts.innerHTML = "";
+      facts.forEach(function (fact, index) {
+        if (index) els.facts.appendChild(document.createTextNode("   "));
+        els.facts.appendChild(document.createTextNode(fact));
+      });
+    } else {
+      els.type.style.display = "none";
+      els.facts.innerHTML = "";
+      var setOnly = line.set + (line.number ? " · " + line.number : "");
+      if (setOnly) els.facts.textContent = setOnly;
+    }
+
+    els.prev.disabled = viewerAt <= 0;
+    els.next.disabled = viewerAt >= display.length - 1;
+
+    // The next card is usually the one being swiped to, so warm it while this one is looked at.
+    [viewerAt - 1, viewerAt + 1].forEach(function (near) {
+      var other = display[near];
+      var otherPic = other && pictures(other.card);
+      if (otherPic && otherPic.normal) new Image().src = otherPic.normal;
+    });
+  }
+
+  function openViewer(position) {
+    if (position < 0 || position >= display.length) return;
+    viewerAt = position;
+    var els = viewerEls();
+    els.box.classList.add("open");
+    els.box.setAttribute("aria-hidden", "false");
+    document.body.classList.add("locked");
+    paintViewer();
+  }
+
+  function closeViewer() {
+    viewerAt = -1;
+    var els = viewerEls();
+    els.box.classList.remove("open");
+    els.box.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("locked");
+  }
+
+  function step(delta) {
+    if (viewerAt < 0) return;
+    var next = viewerAt + delta;
+    if (next < 0 || next >= display.length) return;
+    viewerAt = next;
+    paintViewer();
+  }
+
+  function wireViewer() {
+    var els = viewerEls();
+    document.getElementById("v-close").addEventListener("click", closeViewer);
+    els.prev.addEventListener("click", function () { step(-1); });
+    els.next.addEventListener("click", function () { step(1); });
+
+    // A tap on the dark area beside the card closes it, but a tap on the card itself does not.
+    els.box.addEventListener("click", function (event) {
+      if (event.target === els.box || event.target.id === "v-stage") closeViewer();
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (viewerAt < 0) return;
+      if (event.key === "Escape") closeViewer();
+      else if (event.key === "ArrowLeft") step(-1);
+      else if (event.key === "ArrowRight") step(1);
+    });
+
+    // Swipe: horizontal drags move a card, vertical drags are left to the browser.
+    var startX = 0, startY = 0, tracking = false;
+    var stage = document.getElementById("v-stage");
+    stage.addEventListener("touchstart", function (event) {
+      if (event.touches.length !== 1) return;
+      tracking = true;
+      startX = event.touches[0].clientX;
+      startY = event.touches[0].clientY;
+    }, { passive: true });
+    stage.addEventListener("touchend", function (event) {
+      if (!tracking) return;
+      tracking = false;
+      var touch = event.changedTouches[0];
+      var dx = touch.clientX - startX;
+      var dy = touch.clientY - startY;
+      if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
+      step(dx < 0 ? 1 : -1);
+    }, { passive: true });
+
+    // Trackpads and mice: horizontal wheel or a simple drag across the stage.
+    var dragFrom = null;
+    stage.addEventListener("pointerdown", function (event) {
+      if (event.pointerType === "mouse") dragFrom = event.clientX;
+    });
+    stage.addEventListener("pointerup", function (event) {
+      if (dragFrom === null) return;
+      var dx = event.clientX - dragFrom;
+      dragFrom = null;
+      if (Math.abs(dx) < 45) return;
+      step(dx < 0 ? 1 : -1);
+    });
+  }
+
+  // ------------------------------------------------------------- actions
+
   function copyList() {
     if (!deck) return;
     var lines = deck.lines.map(function (line) {
-      var card = line.printingId ? info[line.printingId] : null;
-      return line.quantity + " " + nameOf(line, card);
+      return line.quantity + " " + nameOf(line, cardFor(line));
     });
     var text = deck.name + "\n\n" + lines.join("\n");
     var button = document.getElementById("copy-list");
@@ -482,30 +677,48 @@
   function showError(message) {
     var main = document.getElementById("deck");
     main.innerHTML = "";
-    var note = document.createElement("p");
-    note.className = "note";
+    var note = el("p", "note");
     note.innerHTML = message;
     main.appendChild(note);
+    document.getElementById("deck-value").innerHTML = "";
   }
 
-  document.getElementById("toggle-art").addEventListener("click", function () {
-    var on = document.body.classList.toggle("art");
-    this.textContent = on ? "Hide art" : "Show art";
-    try { localStorage.setItem("deckforge.art", on ? "1" : "0"); } catch (e) {}
-  });
+  // A payload this page cannot render should still show the deck rather than an empty screen.
+  function plainList(reason) {
+    if (!deck) return;
+    var main = document.getElementById("deck");
+    main.innerHTML = "";
+    var note = el("p", "note", reason);
+    main.appendChild(note);
+    var heading = el("h2", null, "Cards");
+    heading.appendChild(el("span", null, String(deck.lines.length)));
+    main.appendChild(heading);
+    deck.lines.forEach(function (line) {
+      main.appendChild(buildRow({ line: line, card: null, position: display.length }));
+      display.push({ line: line, card: null });
+    });
+  }
+
   document.getElementById("copy-list").addEventListener("click", copyList);
-
-  if (localStorage.getItem("deckforge.art") === "1") {
-    document.body.classList.add("art");
-    document.getElementById("toggle-art").textContent = "Hide art";
-  }
+  // An old page left "art on" behind in storage; nothing reads it now, so clear it on sight.
+  try { localStorage.removeItem("deckforge.art"); } catch (e) {}
+  wireViewer();
 
   readPayload().then(function (seed) {
     deck = normalise(seed);
-    render(false); // first paint from the link alone, so a slow network still shows the list
+    try {
+      render();
+    } catch (error) {
+      plainList("Showing the list from the link alone (" + (error && error.message ? error.message : "render failed") + ").");
+    }
     return fetchCards(deck.lines).then(function (cards) {
       cards.forEach(function (card) { if (card && card.id) info[card.id] = card; });
-      render(true);
+      lookedUp = true;
+      try {
+        render();
+      } catch (error) {
+        plainList("Showing the list from the link alone (" + (error && error.message ? error.message : "render failed") + ").");
+      }
     });
   }).catch(function (error) {
     if (error && error.message === "no-deck") {

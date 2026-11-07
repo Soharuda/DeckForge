@@ -22,6 +22,10 @@ reads as about twenty characters, `https://is.gd/tKqiVc`, and points at the same
 shortener only ever sees the deck, never a binder or a purchase price, and if it cannot be
 reached the full link is shared instead.
 
+The page also hands the deck back: "Open in DeckForge" builds an `intent://import?d=` address
+that opens the Android app, which files the deck into his decks in one step. A phone without the
+app lands on `docs/import/`, which says so and still lets the deck be read in the browser.
+
 `docs/index.html` is the viewer, and it does one thing: show a deck. It is a single static page
 with no dependencies (no CDN, no framework): the deck rides in the `d` query string as base64url of
 gzipped JSON, the page unpacks it with the browser's own gzip support, then looks the printings up

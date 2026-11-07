@@ -17,6 +17,11 @@ name and Scryfall id would cost: a card is identified by its printing (set code 
 number), and the page looks it up for the name, art, type and price. Nothing but the printings
 travels in the link.
 
+The app shortens that address through is.gd (falling back to v.gd, then TinyURL) so a share
+reads as about twenty characters, `https://is.gd/tKqiVc`, and points at the same full link. The
+shortener only ever sees the deck, never a binder or a purchase price, and if it cannot be
+reached the full link is shared instead.
+
 `docs/index.html` is the viewer, and it does one thing: show a deck. It is a single static page
 with no dependencies (no CDN, no framework): the deck rides in the `d` query string as base64url of
 gzipped JSON, the page unpacks it with the browser's own gzip support, then looks the printings up

@@ -248,7 +248,11 @@
     return (card && card.image_uris) || null;
   }
   function nameOf(line, card) {
-    return (card && card.name) || line.name || "Unknown card";
+    if (card && card.name) return card.name;
+    if (line.name) return line.name;
+    // A compact line carries no name: show the printing until the lookup fills it in.
+    var printing = (line.set + " " + line.number).trim();
+    return printing || "Unknown card";
   }
   function isFoilLine(line) {
     return line.foilQuantity >= line.quantity && line.quantity > 0;
@@ -351,16 +355,43 @@
     return raw ? unpack(raw) : Promise.reject(new Error("no-deck"));
   }
 
-  // Payload lines arrive as [qty, set, number, foilQty, name, board, printingId].
-  function normalise(seed) {
-    var lines = (seed.lines || []).map(function (raw, index) {
-      if (!Array.isArray(raw)) {
-        return { quantity: 1, name: raw.name || "", set: "", number: "", foilQuantity: 0,
-                 board: "main", printingId: null, index: index };
-      }
-      var quantity = parseInt(raw[0], 10) || 1;
+  // One compact line: `quantity set number [flags]`, flags being f (all copies foil), f2 (two
+  // foil), c/p/s (commander, companion, sideboard). A card with no printing falls back to
+  // `quantity ! - [flags] | Name`. This matches ShareDeckCodec.compactLine on the app side.
+  function parseCompactLine(text) {
+    var bar = text.indexOf("|");
+    var body = (bar >= 0 ? text.slice(0, bar) : text).trim();
+    var name = bar >= 0 ? text.slice(bar + 1).trim() : "";
+    var tokens = body.split(/\s+/).filter(function (token) { return token.length > 0; });
+    var quantity = parseInt(tokens[0], 10) || 1;
+    var set = (tokens[1] || "").toUpperCase();
+    var number = tokens[2] || "";
+    if (set === "!") { set = ""; number = ""; }
+    var foilQuantity = 0;
+    var board = "main";
+    tokens.slice(3).forEach(function (token) {
+      if (token.charAt(0) === "f") {
+        var count = parseInt(token.slice(1), 10);
+        foilQuantity = isNaN(count) ? quantity : count;
+      } else if (token === "c") board = "commander";
+      else if (token === "p") board = "companion";
+      else if (token === "s") board = "side";
+    });
+    return { quantity: quantity, set: set, number: number, foilQuantity: foilQuantity,
+             name: name, board: board, printingId: null };
+  }
+
+  // Two payload versions arrive here: v1 carries arrays with names and Scryfall ids (page files
+  // and older links), v2 carries one compact line per card because the printing is enough.
+  function normaliseLine(raw, index) {
+    if (typeof raw === "string") {
+      var line = parseCompactLine(raw);
+      line.index = index;
+      return line;
+    }
+    if (Array.isArray(raw)) {
       return {
-        quantity: quantity,
+        quantity: parseInt(raw[0], 10) || 1,
         set: (raw[1] || "").toUpperCase(),
         number: raw[2] ? String(raw[2]) : "",
         foilQuantity: parseInt(raw[3], 10) || 0,
@@ -369,7 +400,13 @@
         printingId: raw[6] || null,
         index: index
       };
-    });
+    }
+    return { quantity: 1, name: (raw && raw.name) || "", set: "", number: "", foilQuantity: 0,
+             board: "main", printingId: null, index: index };
+  }
+
+  function normalise(seed) {
+    var lines = (seed.lines || []).map(normaliseLine);
     return {
       name: seed.name || "Shared deck",
       formatLabel: seed.formatLabel || seed.format || "",

@@ -785,6 +785,39 @@
     return "https://manapool.com/add-deck?deck=" + encodeURIComponent(btoa(binary));
   }
 
+  // ------------------------------------------------------- handing the deck back
+
+  /**
+   * The payload this page was opened with. A page file carries its deck in a script instead, so
+   * there it is packed again with the browser's own gzip, which keeps the import working offline
+   * as well as a link does.
+   */
+  function payloadForImport() {
+    if (payloadInAddress) return Promise.resolve(payloadInAddress);
+    if (!window.DECKFORGE_SEED) return Promise.resolve("");
+    if (typeof CompressionStream === "undefined") return Promise.resolve("");
+    var bytes = new TextEncoder().encode(JSON.stringify(window.DECKFORGE_SEED));
+    var stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
+    return new Response(stream).arrayBuffer().then(function (buffer) {
+      var view = new Uint8Array(buffer), binary = "";
+      for (var i = 0; i < view.length; i++) binary += String.fromCharCode(view[i]);
+      return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    });
+  }
+
+  /**
+   * An intent:// address is the only shape a browser will hand to an installed app. The fallback
+   * is this site's own import page, so a phone without DeckForge lands somewhere that explains
+   * itself instead of on a dead link.
+   */
+  function importAddress(payload) {
+    var fallback = new URL("import/", window.location.href).href;
+    if (payload) fallback += "?d=" + payload;
+    return "intent://import?d=" + payload +
+      "#Intent;scheme=deckforge;package=com.soharuda.deckforge;S.browser_fallback_url=" +
+      encodeURIComponent(fallback) + ";end";
+  }
+
   // ---- the options menu: every action the page offers lives behind one button --------------
   var MENU_VENDORS = ["manapool", "tcgplayer", "cardkingdom"];
 

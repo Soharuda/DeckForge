@@ -29,7 +29,9 @@ app lands on `docs/import/`, which says so and still lets the deck be read in th
 The page also sells. Everything it can do sits behind one Options menu in the header: copy the list,
 open the deck in the Android app, or send the list to Mana Pool (prefilled, since their bulk entry
 takes a deck in the address), TCGplayer's mass entry or Card Kingdom's builder (both given the list
-on the clipboard, which is what those two read).
+on the clipboard, which is what those two read). Tapping a card in the viewer offers the same three
+shops for that one card: Mana Pool opens a one-card cart on that printing, the other two open a
+name search.
 
 `docs/index.html` is the viewer, and it does one thing: show a deck. It is a single static page
 with no dependencies (no CDN, no framework): the deck rides in the `d` query string as base64url of

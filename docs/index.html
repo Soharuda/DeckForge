@@ -162,6 +162,8 @@
     color: var(--faint); font-size: 12px; text-align: center; padding: 16px;
   }
   .v-info { text-align: center; padding-top: 6px; }
+  .head-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .head-actions a[type="button"] { text-decoration: none; display: inline-flex; align-items: center; }
   .v-name { font-size: 15px; font-weight: 600; margin: 0 0 3px; overflow-wrap: anywhere; }
   .v-line { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
   .v-line + .v-line { margin-top: 2px; }
@@ -176,7 +178,10 @@
     <div class="meta" id="deck-meta"></div>
     <div class="head-row">
       <div class="value" id="deck-value"><span class="spin"></span>reading the deck…</div>
-      <button id="copy-list" type="button">Copy list</button>
+      <div class="head-actions">
+        <button id="copy-list" type="button">Copy list</button>
+        <a id="open-app" type="button" hidden>Open in DeckForge</a>
+      </div>
     </div>
   </div>
 </header>
@@ -226,6 +231,7 @@
   ];
 
   var deck = null;      // the deck from the link
+  var payloadInAddress = ""; // the ?d= deck this page was opened with, when there was one
   var info = {};        // printing (Scryfall id, or set + number) -> scryfall card
   var display = [];     // every row in the order it is drawn, so the viewer walks the same list
   var lookedUp = false;
@@ -359,6 +365,7 @@
       var at = hash.indexOf("d=");
       if (at >= 0) raw = hash.slice(at + 2).split("&")[0];
     }
+    payloadInAddress = raw || "";
     return raw ? unpack(raw) : Promise.reject(new Error("no-deck"));
   }
 
@@ -689,6 +696,55 @@
     });
   }
 
+  // ------------------------------------------------------- handing the deck back
+
+  /**
+   * The payload this page was opened with. A page file carries its deck in a script instead, so
+   * there it is packed again with the browser's own gzip, which keeps the import working offline
+   * as well as a link does.
+   */
+  function payloadForImport() {
+    if (payloadInAddress) return Promise.resolve(payloadInAddress);
+    if (!window.DECKFORGE_SEED) return Promise.resolve("");
+    if (typeof CompressionStream === "undefined") return Promise.resolve("");
+    var bytes = new TextEncoder().encode(JSON.stringify(window.DECKFORGE_SEED));
+    var stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
+    return new Response(stream).arrayBuffer().then(function (buffer) {
+      var view = new Uint8Array(buffer), binary = "";
+      for (var i = 0; i < view.length; i++) binary += String.fromCharCode(view[i]);
+      return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    });
+  }
+
+  /**
+   * An intent:// address is the only shape a browser will hand to an installed app. The fallback
+   * is this site's own import page, so a phone without DeckForge lands somewhere that explains
+   * itself instead of on a dead link.
+   */
+  function importAddress(payload) {
+    var fallback = new URL("import/", window.location.href).href;
+    if (payload) fallback += "?d=" + payload;
+    return "intent://import?d=" + payload +
+      "#Intent;scheme=deckforge;package=com.soharuda.deckforge;S.browser_fallback_url=" +
+      encodeURIComponent(fallback) + ";end";
+  }
+
+  function wireImportButton() {
+    var button = document.getElementById("open-app");
+    if (!button) return;
+    payloadForImport().then(function (payload) {
+      if (!payload) return;
+      button.href = importAddress(payload);
+      button.hidden = false;
+      button.addEventListener("click", function (event) {
+        if (/Android/i.test(navigator.userAgent)) return; // the intent address does the work
+        event.preventDefault();
+        button.textContent = "Opens in the DeckForge app";
+        setTimeout(function () { button.textContent = "Open in DeckForge"; }, 2200);
+      });
+    });
+  }
+
   // ------------------------------------------------------------- actions
 
   function copyList() {
@@ -738,6 +794,8 @@
   // An old page left "art on" behind in storage; nothing reads it now, so clear it on sight.
   try { localStorage.removeItem("deckforge.art"); } catch (e) {}
   wireViewer();
+
+  wireImportButton();
 
   readPayload().then(function (seed) {
     deck = normalise(seed);

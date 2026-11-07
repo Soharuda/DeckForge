@@ -26,6 +26,10 @@ The page also hands the deck back: "Open in DeckForge" builds an `intent://impor
 that opens the Android app, which files the deck into his decks in one step. A phone without the
 app lands on `docs/import/`, which says so and still lets the deck be read in the browser.
 
+The page also sells: "Buy cards" opens the same list at Mana Pool (prefilled, since their bulk entry
+takes a deck in the address), TCGplayer's mass entry and Card Kingdom's builder (both given the list
+on the clipboard, which is what those two read).
+
 `docs/index.html` is the viewer, and it does one thing: show a deck. It is a single static page
 with no dependencies (no CDN, no framework): the deck rides in the `d` query string as base64url of
 gzipped JSON, the page unpacks it with the browser's own gzip support, then looks the printings up

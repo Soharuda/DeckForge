@@ -15,19 +15,40 @@
 <p>Battle Mode is the separate app that plays a DeckForge deck with the XMage rules engine.</p>
 
 <h2>The table</h2>
-<p>0.15.0 stops being a wall of text. A game is now a table you look at: the opponent's half
+<p>0.16.0 is the screen Arena taught us to expect. It is landscape, and it is a table: their half
 mirrored above, yours below, creatures nearest the middle where combat happens and lands behind
-them, your hand along the bottom edge, and the graveyard, exile and library as piles beside each
-player.</p>
-<p>Cards are cards. Tapped permanents are turned a quarter turn, creatures carry their power and
-toughness, tokens are marked, and one tap on any card opens it at full size with its printed
-text. Long-pressing a card opens it too, wherever the table is asking for something else.</p>
-<p>What the engine wants from you is one sentence at the bottom and the buttons that answer it,
-and a question better answered by touching the table says so instead of listing engine verbs.
-Tap a card in hand to pick it, cast it, then tap what it points at. Attack by tapping your
-creatures and confirming; block by tapping your blocker and then their attacker, or press the
-block line if your finger misses.</p>
-<p>The strip between the halves is the turn's phases, or the stack when something is on it.</p>
+them, the graveyard and exile as piles on each player's plate, and your hand along the bottom edge
+with the cards you can actually play lit and the rest left quiet.</p>
+<p>A card is played the way a card is played. Drag it out of your hand; while it is under your
+finger the card you would be playing is drawn at table size, and your own half lights up if it can
+be played there. Let go over your half and it is played, let go anywhere else and it slides back
+into your hand with a line at the bottom saying what is missing. Tapping a card no longer plays it,
+because tapping is how you read.</p>
+<p>One tap on any card, in hand or on the table, puts the card itself up on the right at the size it
+is printed to be read, and a tap anywhere puts it away again. No dialog, no separate oracle panel:
+the printed text is the text.</p>
+<p>The dock in the corner only appears when the engine wants something, and it asks in a sentence.
+Questions better answered by touching the table say so and get out of the way. Tapped permanents
+turn a quarter turn, creatures carry their power and toughness, tokens are marked, and the strip
+between the halves is the turn's phases, or the stack when something is on it.</p>
+
+<h2>Before the game</h2>
+<p>A deck used to be dealt the moment it arrived. Now there is a lobby. It checks the deck against
+the cards this phone can build, and while it does it says so: the name of the card it is on, how
+many of how many, and a bar that moves. Anything the engine cannot build is listed by name with a
+reason, instead of the deck quietly arriving with holes in it.</p>
+<p>Then the decklist, in full, with the sideboard and the commander, and the number of pictures it
+will need. Pressing on asks for those pictures ahead of time: every card at its printing, the
+illustration as well as the whole card, the tokens the deck's own wording implies, and the other
+seat's deck, with progress on screen while it runs. The first game therefore starts with pictures
+already on disk rather than during the first turn.</p>
+
+<h2>One land a turn</h2>
+<p>0.16.0 fixes a bug worth naming. A land drop could be used twice in a turn, which is how a
+Mountain and an Exotic Orchard both appeared on turn one. The seat now asks the engine's own count
+of land drops as well as its own marker, and only plays a land the engine offered it in that main
+phase. A test plays an all-lands deck turn after turn and calls a second land directly, the way the
+phone did.</p>
 
 <h2>The pictures</h2>
 <p>Card art comes from Scryfall, once. Every card in the deck is resolved to its printing and its
@@ -46,12 +67,12 @@ the only way to kill something bigger than anything it owns. Instants are cast a
 A deck that arrives with a commander is played as a commander game: forty life, the general in
 the command zone, and its tax tracked by the engine.</p>
 
-<p><a href="BattleMode-0.15.0.apk">Download Battle Mode 0.15.0</a></p>
+<p><a href="BattleMode-0.16.0.apk">Download Battle Mode 0.16.0</a></p>
 <p>Installing it from a browser means allowing your browser to install unknown apps. DeckForge
 can do the same thing itself, from the deck menu, and checks the download against this page's
 checksum and signing key before handing it to Android.</p>
 <p>Both apps are signed with the same key on purpose: that is how DeckForge knows the app that
 answers <code>com.soharuda.deckforge.battle.action.PLAY</code> is ours and not an impostor.</p>
-<p>SHA-256 of the APK: <code>89961db6538f916388c1ec935563e3a6cc0e2df1604e17365454f341da34fb35</code></p>
+<p>SHA-256 of the APK: <code>9d04971a3b3d7af8903091a8188ca3f56bf0622bef246993de0ac36655f3b9f9</code></p>
 </body>
 </html>

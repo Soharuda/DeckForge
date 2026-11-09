@@ -7,34 +7,51 @@
 <style>
   body { font-family: system-ui, sans-serif; max-width: 34rem; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.5; }
   code { background: rgba(128,128,128,.15); padding: .1rem .3rem; border-radius: .25rem; }
+  h2 { font-size: 1rem; margin-top: 2rem; }
 </style>
 </head>
 <body>
 <h1>Battle Mode</h1>
-<p>Battle Mode is the plugin that plays a DeckForge deck with the XMage rules engine. It has no
-icon of its own: DeckForge starts it, and the table closes back into DeckForge. It stays listed in
-Settings under Apps, so it can still be removed.</p>
-<p>This build plays the game: it takes the deck DeckForge sent, seats it against a sparring deck,
-and runs it on the XMage rules engine. You choose what to play and what to cast; the table pays
-costs, attacks and blocks.</p>
-<p>More than one creature can block the same attacker, and the AI will pile on by itself when
-that is the only way to kill something bigger than anything it owns.</p>
-<p>Instants are cast at instant speed: a removal spell or a trick can answer the opponent's turn
-instead of waiting for a main phase of its owner's own.</p>
-<p>Before a deck is dealt, the app says exactly which of its cards the engine cannot build here,
-and why, rather than only naming them.</p>
-<p>Every card with a mana cost builds again: the engine split a cost with a regular expression that
-Android's regex engine refuses, so on the phone a deck arrived at the table as its mana base alone.</p>
-<p>Decisions are yours: what to play, what to point a spell at, which blocks to make, and which
-creatures attack. Everything else (paying costs, damage) the table answers itself.</p>
-<p>A deck that arrives with a commander is played as a commander game: forty life, the general
-starting in the command zone, and its tax tracked by the engine.</p>
-<p><a href="BattleMode-0.14.0.apk">Download Battle Mode 0.14.0</a></p>
+<p>Battle Mode is the separate app that plays a DeckForge deck with the XMage rules engine.</p>
+
+<h2>The table</h2>
+<p>0.15.0 stops being a wall of text. A game is now a table you look at: the opponent's half
+mirrored above, yours below, creatures nearest the middle where combat happens and lands behind
+them, your hand along the bottom edge, and the graveyard, exile and library as piles beside each
+player.</p>
+<p>Cards are cards. Tapped permanents are turned a quarter turn, creatures carry their power and
+toughness, tokens are marked, and one tap on any card opens it at full size with its printed
+text. Long-pressing a card opens it too, wherever the table is asking for something else.</p>
+<p>What the engine wants from you is one sentence at the bottom and the buttons that answer it,
+and a question better answered by touching the table says so instead of listing engine verbs.
+Tap a card in hand to pick it, cast it, then tap what it points at. Attack by tapping your
+creatures and confirming; block by tapping your blocker and then their attacker, or press the
+block line if your finger misses.</p>
+<p>The strip between the halves is the turn's phases, or the stack when something is on it.</p>
+
+<h2>The pictures</h2>
+<p>Card art comes from Scryfall, once. Every card in the deck is resolved to its printing and its
+name, and both the whole card and its illustration are fetched while the game is being dealt, a
+few at a time and spaced out. They are written to a small index on disk with the pictures
+themselves, so the second game with the same deck asks the network for nothing at all.</p>
+<p>Tokens are fetched ahead of time too, by reading the deck's own wording: a card that says it
+creates a 1/1 white Soldier makes "Soldier" into a warm-up request before the token exists. A
+token nobody predicted still gets its picture the moment it appears, and is remembered after
+that.</p>
+<p>Nothing about a game depends on the network. Pictures arrive; the table plays either way.</p>
+
+<h2>What the table already does</h2>
+<p>More than one creature can block the same attacker, and the AI piles on by itself when that is
+the only way to kill something bigger than anything it owns. Instants are cast at instant speed.
+A deck that arrives with a commander is played as a commander game: forty life, the general in
+the command zone, and its tax tracked by the engine.</p>
+
+<p><a href="BattleMode-0.15.0.apk">Download Battle Mode 0.15.0</a></p>
 <p>Installing it from a browser means allowing your browser to install unknown apps. DeckForge
 can do the same thing itself, from the deck menu, and checks the download against this page's
 checksum and signing key before handing it to Android.</p>
 <p>Both apps are signed with the same key on purpose: that is how DeckForge knows the app that
 answers <code>com.soharuda.deckforge.battle.action.PLAY</code> is ours and not an impostor.</p>
-<p>SHA-256 of the APK: <code>007eeeb5f53a75cb196cafc5450484d3737f8dcfc7a733826c3c531d9ddaf894</code></p>
+<p>SHA-256 of the APK: <code>89961db6538f916388c1ec935563e3a6cc0e2df1604e17365454f341da34fb35</code></p>
 </body>
 </html>

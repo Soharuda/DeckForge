@@ -14,6 +14,23 @@
 <h1>Battle Mode</h1>
 <p>Battle Mode is the separate app that plays a DeckForge deck with the XMage rules engine.</p>
 
+<h2>A second table, behind a switch</h2>
+<p>0.28.0 is a draft of the board that did not come from this app, kept beside the table rather than
+put in its place. One real perspective plane with the cards laid out flat inside it, a purple
+playmat, a glowing midline, two ranks a side, life orbs at the edges and a fanned hand. It is a
+different board and not a restyled one: no lane along the bottom, no card sheet on a long press, no
+dragging a card out of the hand and onto the table.</p>
+<p>So it is a switch in the top bar, reading Table or Draft, and it remembers where it was left.
+Turned on, the draft draws the same game: the same permanents, tapped where they are tapped and lit
+where the table is asking a question, and a tap on either board answers through the same code. The
+game is untouched; only the hand that deals it out differs, which is the point of having both for a
+while.</p>
+<p>One correction had to be made before the two could be compared. The draft hinges its plane at
+the middle, and a middle hinge draws the board at nine tenths of the height it was given: at forty
+degrees and a far edge at four fifths, a tenth of the table is a band of nothing above it. Hinged at
+the near edge instead, which is also the edge that has to stay on the bottom of the screen, every
+rank fills its slot and the near edge is drawn at the size it was measured.</p>
+
 <h2>The table owns the whole screen</h2>
 <p>0.27.0 is about the space above the cards. The app's own title bar used to stay up over the board
 while a game was on, and the board's top bar still reserved the status bar's inset even though the
@@ -127,12 +144,12 @@ the only way to kill something bigger than anything it owns. Instants are cast a
 A deck that arrives with a commander is played as a commander game: forty life, the general in
 the command zone, and its tax tracked by the engine.</p>
 
-<p><a href="BattleMode-0.27.0.apk">Download Battle Mode 0.27.0</a></p>
+<p><a href="BattleMode-0.28.0.apk">Download Battle Mode 0.28.0</a></p>
 <p>Installing it from a browser means allowing your browser to install unknown apps. DeckForge
 can do the same thing itself, from the deck menu, and checks the download against this page's
 checksum and signing key before handing it to Android.</p>
 <p>Both apps are signed with the same key on purpose: that is how DeckForge knows the app that
 answers <code>com.soharuda.deckforge.battle.action.PLAY</code> is ours and not an impostor.</p>
-<p>SHA-256 of the APK: <code>f83149e966bf2f6b44233ccc218c4a6c3c1e318c087d17766ef95f2d2db903cf</code></p>
+<p>SHA-256 of the APK: <code>ce30839732c5bb1d11d53869f5e4595942b99e4f0cb917756c6017b05625a991</code></p>
 </body>
 </html>

@@ -14,6 +14,29 @@
 <h1>Battle Mode</h1>
 <p>Battle Mode is the separate app that plays a DeckForge deck with the XMage rules engine.</p>
 
+<h2>A board measured to the screen, a tap that only reads</h2>
+<p>0.30.0 is the draft board grown up. Every size on it was written down for one phone - a 72dp
+column for the command zone, 40dp libraries, a 64dp card in the hand - so on a short landscape
+window the gutter ate a fifth of the width and on a wide one the board floated in the middle of
+nothing. The hand, the pips, the libraries, the spacing and the lift that plays a card are now
+shares of the window, bounded at both ends: a short screen still shows a card, a tablet gets a
+table rather than a bigger hand.</p>
+<p>The command zone went with it. Your general is the first card of your back rank and your library
+is the last, so neither is drawn over a card any more; the row shares itself out instead of leaving
+a margin guessed for it. Their general stands at the left of their row the same way.</p>
+<p>One gesture does one thing now, on both boards. A tap opens a card whole, and the card carries
+the play - Cast, or Play land - when it can be played. A lift out of the hand plays it. Before this a
+tap on a land in your hand played it outright and a tap on an instant was the cast itself, so the
+only way to read a card was to risk playing it. The general in the command zone is played from its
+own card now, which is the only door it has.</p>
+<p>The bar along the top is a bar: on the very top edge, its height a share of the window, holding
+the far seat's life pip and nothing else. Neither seat has a portrait to draw, so the avatar disc and
+the name above the table are gone, and the number is the same pip the draft stands at the end of your
+row.</p>
+<p>And commander draws on turn one. The engine applies the two-player tournament rule, where the
+player who goes first skips the draw step of their first turn, and commander counts as two-player as
+far as it is concerned. A commander table does not play that way, so every seat draws.</p>
+
 <h2>The right opponent, and the bar out of the way</h2>
 <p>0.29.0 is two fixes and one addition. The seat across the table is now built for the format your
 deck declares: hand it a commander deck and it sits down with a hundred-card singleton deck of its
@@ -158,7 +181,7 @@ the only way to kill something bigger than anything it owns. Instants are cast a
 A deck that arrives with a commander is played as a commander game: forty life, the general in
 the command zone, and its tax tracked by the engine.</p>
 
-<p><a href="BattleMode-0.29.0.apk">Download Battle Mode 0.29.0</a></p>
+<p><a href="BattleMode-0.30.0.apk">Download Battle Mode 0.30.0</a></p>
 <p>Installing it from a browser means allowing your browser to install unknown apps. DeckForge
 can do the same thing itself, from the deck menu, and checks the download against this page's
 checksum and signing key before handing it to Android.</p>

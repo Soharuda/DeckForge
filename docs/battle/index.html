@@ -14,6 +14,27 @@
 <h1>Battle Mode</h1>
 <p>Battle Mode is the separate app that plays a DeckForge deck with the XMage rules engine.</p>
 
+<h2>One table, leaning away from you</h2>
+<p>0.26.0 is about where things are. The board used to be two halves that each leaned about their own
+middle, which is two planes rather than one: their half tilted toward you as much as yours tilted
+away, so their board read as if it were lying on your side of the table. It is one plane now,
+leaning away about its near edge. The edge in front of you is drawn at the size it is measured, the
+far edge at four fifths of that, and the eye's distance is worked out from those two numbers. Both
+seats are laid out on the one plane, so their board is further away because it is further away.</p>
+<p>Your side is the row you sit at and the rank in front of it. The deck is in the near left corner
+drawn as card backs with the count of what is left on top, and the graveyard is stacked directly
+over it. The lands are in the row along the bottom between the deck and your hand, your hand is
+fanned in the middle of the screen, and your artifacts and enchantments are in the same row to the
+right of it. In front of that row, filling your half up to the middle of the table, is your front
+rank: creatures, planeswalkers and battles, at the largest size the height allows.</p>
+<p>Theirs is the same shape seen from across the table. Their lands and artifacts run along their own
+back edge, their hand is face down between them, and their front rank faces yours across the midline,
+all of it drawn smaller and higher because it is further off.</p>
+<p>The band along the bottom no longer comes and goes with your hand, because it is not only your hand
+any more: a row with a deck and a graveyard in it stays where it is. The one panel that asks a
+question stands over the near right corner of the table instead of taking a row, and the rank behind
+it keeps clear of it rather than hiding underneath.</p>
+
 <h2>Cards that were never missing</h2>
 <p>0.25.0 fixes a refusal rather than a gap. The pre-game check named cards the engine cannot build,
 and some of those names were the check's fault. The sets register plenty of cards under the
@@ -42,9 +63,9 @@ is asking you to pick breathes, so a legal target can be found on a full board.<
 
 <h2>The table</h2>
 <p>The table is the screen Arena taught us to expect. It is landscape, and it is a table: their half
-mirrored above, yours below, creatures nearest the middle where combat happens and lands behind
-them, the graveyard and exile as piles on each player's plate, and your hand along the bottom edge
-with the cards you can actually play lit and the rest left quiet.</p>
+across from you, yours in front, creatures nearest the middle where combat happens, the decks and
+the graveyards in the corners, and your hand with the cards you can actually play lit and the rest
+left quiet.</p>
 <p>A card is played the way a card is played. Drag it out of your hand; while it is under your
 finger the card you would be playing is drawn at table size, and your own half lights up if it can
 be played there. Let go over your half and it is played, let go anywhere else and it slides back
@@ -93,12 +114,12 @@ the only way to kill something bigger than anything it owns. Instants are cast a
 A deck that arrives with a commander is played as a commander game: forty life, the general in
 the command zone, and its tax tracked by the engine.</p>
 
-<p><a href="BattleMode-0.25.0.apk">Download Battle Mode 0.25.0</a></p>
+<p><a href="BattleMode-0.26.0.apk">Download Battle Mode 0.26.0</a></p>
 <p>Installing it from a browser means allowing your browser to install unknown apps. DeckForge
 can do the same thing itself, from the deck menu, and checks the download against this page's
 checksum and signing key before handing it to Android.</p>
 <p>Both apps are signed with the same key on purpose: that is how DeckForge knows the app that
 answers <code>com.soharuda.deckforge.battle.action.PLAY</code> is ours and not an impostor.</p>
-<p>SHA-256 of the APK: <code>8d8ec13fa4dd3f3e1d70276c5d2fd3adeeb48c8785697d72fc28acf67e974bd9</code></p>
+<p>SHA-256 of the APK: <code>62af6e3e2b9168b5161393febe98510f9675371f331994d296e88808990ede57</code></p>
 </body>
 </html>

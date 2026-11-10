@@ -14,6 +14,19 @@
 <h1>Battle Mode</h1>
 <p>Battle Mode is the separate app that plays a DeckForge deck with the XMage rules engine.</p>
 
+<h2>The table owns the whole screen</h2>
+<p>0.27.0 is about the space above the cards. The app's own title bar used to stay up over the board
+while a game was on, and the board's top bar still reserved the status bar's inset even though the
+bars are hidden, which together was a quarter inch of nothing above Log and Leave. The title bar
+belongs to the lobby; it goes as soon as the cards are out, and the top bar now keeps clear of the
+cutout only.</p>
+<p>The opponent's side was also the small half of the table. Half the board's layout draws as a
+little less than half the screen, because the far half is further away and draws shorter, so an even
+split gives them their share of the top. The far edge is drawn at seven eighths rather than four
+fifths and the lean is twenty degrees rather than twenty-two: still a table you are sitting at,
+without their lands and artifacts squeezed into slivers. The band along the bottom takes a quarter of
+the height and the top bar is 36dp, so the two halves are what has the room.</p>
+
 <h2>One table, leaning away from you</h2>
 <p>0.26.0 is about where things are. The board used to be two halves that each leaned about their own
 middle, which is two planes rather than one: their half tilted toward you as much as yours tilted
@@ -114,12 +127,12 @@ the only way to kill something bigger than anything it owns. Instants are cast a
 A deck that arrives with a commander is played as a commander game: forty life, the general in
 the command zone, and its tax tracked by the engine.</p>
 
-<p><a href="BattleMode-0.26.0.apk">Download Battle Mode 0.26.0</a></p>
+<p><a href="BattleMode-0.27.0.apk">Download Battle Mode 0.27.0</a></p>
 <p>Installing it from a browser means allowing your browser to install unknown apps. DeckForge
 can do the same thing itself, from the deck menu, and checks the download against this page's
 checksum and signing key before handing it to Android.</p>
 <p>Both apps are signed with the same key on purpose: that is how DeckForge knows the app that
 answers <code>com.soharuda.deckforge.battle.action.PLAY</code> is ours and not an impostor.</p>
-<p>SHA-256 of the APK: <code>62af6e3e2b9168b5161393febe98510f9675371f331994d296e88808990ede57</code></p>
+<p>SHA-256 of the APK: <code>f83149e966bf2f6b44233ccc218c4a6c3c1e318c087d17766ef95f2d2db903cf</code></p>
 </body>
 </html>

@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Battle Mode board — layout editor</title>
+<!--
+  The board as a layout you can argue with, then hand back.
+
+  Every zone on the table is a row in a list: their band, their rank, your rank (anything stacked in
+  the leaning half) and your band (the flat row along the bottom). Add a zone, drop one, rename it,
+  give it more or less width, or change what it holds; the picture redraws and the numbers under it
+  re-do themselves. "Export" then prints the whole thing as JSON, which is what goes back to the
+  agent to be written into BoardSeats.kt. Paste an export back into "Import" to carry on from it.
+
+  The numbers are the app's own: TableDepth.kt (tilt, far edge, seat split, far band) and
+  TableMetrics.kt (band share, card cap, top bar, rail). The lean is the app's transform too: the
+  plane is measured taller than the strip it fills and rotated about its near edge inside a CSS
+  perspective equal to the camera distance, so the far edge draws at farScale and the near edge at 1.
+-->
+<style>
+  :root {
+    --page: #0f2419; --panel: #173327; --ink: #f0ead8; --muted: #9db4a6;
+    --metal: #d8c48a; --ground: #13221b; --life: #ffd700;
+    --screen-w: 914px; --screen-h: 411px; --fit: 1; --plane-h: 290px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #0b1511; color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { padding: 16px; max-width: 1240px; margin: 0 auto; }
+  h1 { font-size: 15px; margin: 0 0 2px; }
+  .sub { font-size: 12px; color: var(--muted); margin: 0 0 12px; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+
+  /* ---------- the screen ---------- */
+  .hold { width: 100%; overflow: hidden; }
+  .screen { position: relative; width: var(--screen-w); height: var(--screen-h);
+    transform: scale(var(--fit)); transform-origin: top left; background: var(--ground);
+    border-radius: 6px; overflow: hidden; }
+  .topbar { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center;
+    padding: 0 12px 0 14px; }
+  .hub { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center;
+    gap: 7px; padding: 0 12px 0 4px; background: rgba(23,51,39,.55);
+    border: 1px solid rgba(157,180,166,.22); border-radius: 999px; }
+  .disc { width: 22px; height: 22px; border-radius: 50%; background: rgba(157,180,166,.25);
+    display: grid; place-items: center; font-size: 10px; font-weight: 700; color: var(--muted); }
+  .who { font-size: 10px; font-weight: 600; }
+  .their-life { font-size: 16px; font-weight: 700; color: #fff; }
+  .top-right { margin-left: auto; display: flex; align-items: center; gap: 10px;
+    font-size: 9px; color: var(--muted); }
+  .rail { position: absolute; left: 0; right: 0; display: flex; align-items: center; gap: 10px;
+    padding: 0 12px 0 18px; background: var(--panel); }
+  .turn { font-size: 12px; font-weight: 700; color: var(--life); }
+  .rule { width: 1px; height: 16px; background: rgba(157,180,166,.35); }
+  .phases { display: flex; gap: 3px; }
+  .phase { width: 26px; height: 18px; border-radius: 3px; background: rgba(15,36,25,.55);
+    display: grid; place-items: center; font-size: 6.5px; color: var(--muted); }
+  .phase.on { background: rgba(216,196,138,.78); color: #14140f; font-weight: 700; }
+  .rail-right { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 9px; }
+  .chip { padding: 3px 6px; border-radius: 5px; font-size: 7.5px; font-weight: 600;
+    background: rgba(216,196,138,.22); color: var(--metal); }
+  .my-life { font-size: 17px; font-weight: 700; color: var(--life); }
+
+  .slot { position: absolute; left: 0; right: 0; overflow: hidden; }
+  .plane { position: absolute; left: 0; bottom: 0; width: 100%; height: var(--plane-h);
+    transform-origin: 50% 100%; transform: rotateX(var(--tilt, 20deg));
+    display: flex; flex-direction: column;
+    background: linear-gradient(to bottom, #0a1b13 0%, #132b20 55%, #1b3a2b 100%); }
+  .midline { height: 1px; background: rgba(216,196,138,.3); flex: none; }
+
+  .band { display: flex; align-items: flex-end; flex: none; }
+  .zone { display: flex; flex-direction: column; justify-content: flex-end; min-width: 0; height: 100%; }
+  .zone.row { flex-direction: row; align-items: flex-end; }
+  .zlabel { font-size: 7px; color: rgba(157,180,166,.78); padding: 0 2px 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: none; }
+  .zlabel.mid { text-align: center; } .zlabel.end { text-align: right; }
+  .row { display: flex; align-items: flex-end; gap: 2px; overflow: hidden; }
+  .row.center { justify-content: center; }
+  .rankrow { display: flex; flex-direction: column; justify-content: center; min-height: 0;
+    overflow: hidden; }
+  .empty { font-size: 8px; color: rgba(157,180,166,.45); padding: 2px; }
+
+  .card { position: relative; flex: none; border-radius: 3px; overflow: hidden;
+    background: #22261f; border: 1px solid rgba(10,14,10,.55);
+    box-shadow: 0 1px 3px rgba(0,0,0,.6); font-size: 6px; color: var(--muted);
+    display: grid; place-items: center; }
+  
+  
+  
+  
+  
+  .card.tapped { transform: rotate(90deg) scale(.716); }
+  .back { position: relative; flex: none; border-radius: 2px; display: grid; place-items: center;
+    background: linear-gradient(160deg, #21402f, #0d1e16);
+    border: 1px solid rgba(216,196,138,.45); }
+  .back::before { content: ""; width: 34%; aspect-ratio: 1; border-radius: 50%;
+    border: 1px solid rgba(216,196,138,.55); box-shadow: 0 0 0 3px rgba(216,196,138,.18) inset; }
+  .badge { position: absolute; inset: 0; display: grid; place-items: center;
+    font-size: 10px; font-weight: 700; }
+  .gyex { display: flex; gap: 2px; }
+  .pilechip { font-size: 6.5px; font-weight: 700; background: var(--panel);
+    border-radius: 3px; padding: 1px 3px; }
+
+  .dock { position: absolute; right: 8px; width: 360px; background: var(--panel);
+    border-radius: 14px; padding: 10px; box-shadow: 0 8px 18px rgba(0,0,0,.45); }
+  .dock .prompt { font-size: 9.5px; font-weight: 700; color: var(--metal); }
+  .dock .acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+  .btn { font-size: 9px; padding: 5px 12px; border-radius: 999px;
+    border: 1px solid rgba(157,180,166,.45); color: var(--muted); }
+  .btn.on { background: rgba(216,196,138,.18); border-color: rgba(216,196,138,.5);
+    color: var(--ink); font-weight: 700; }
+
+  /* ---------- the controls ---------- */
+  .knobs { margin-top: 14px; display: grid; gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .knob { background: #10201a; border: 1px solid #1c3a2c; border-radius: 8px; padding: 8px 10px; }
+  .knob label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+  .knob b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .knob input[type=range] { width: 100%; margin-top: 4px; accent-color: #d8c48a; }
+
+  .areas { margin-top: 16px; display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .area { background: #10201a; border: 1px solid #1c3a2c; border-radius: 10px; padding: 10px; }
+  .area h2 { font-size: 11px; margin: 0 0 2px; letter-spacing: .02em; }
+  .area p { font-size: 10px; color: var(--muted); margin: 0 0 8px; }
+  .zone-edit { border-top: 1px solid #1c3a2c; padding: 7px 0; display: grid; gap: 5px;
+    grid-template-columns: 1fr auto; align-items: start; }
+  .zone-edit:first-of-type { border-top: 0; }
+  .ze-name { font-size: 11px; font-weight: 600; }
+  .ze-meta { font-size: 10px; color: var(--muted); }
+  .ze-tools { display: flex; gap: 3px; }
+  .mini { font-size: 10px; padding: 2px 6px; border-radius: 5px; background: #173327;
+    border: 1px solid #24503c; color: var(--ink); cursor: pointer; line-height: 1.3; }
+  .mini:disabled { opacity: .35; cursor: default; }
+  .zone-edit input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: #d8c48a; }
+  .zone-edit select, .zone-edit input[type=text] {
+    grid-column: 1 / -1; width: 100%; font-size: 11px; padding: 3px 5px; border-radius: 5px;
+    background: #0b1511; color: var(--ink); border: 1px solid #24503c; }
+  .addzone { font-size: 10.5px; padding: 5px 9px; border-radius: 6px; background: #173327;
+    border: 1px dashed #2e6249; color: var(--ink); cursor: pointer; width: 100%; margin-top: 6px; }
+
+  .io { margin-top: 16px; display: grid; gap: 12px; grid-template-columns: 1fr; }
+  .io h2 { font-size: 11px; margin: 0 0 6px; }
+  .io textarea { width: 100%; min-height: 130px; font-family: ui-monospace, Menlo, monospace;
+    font-size: 10.5px; line-height: 1.5; background: #0b1511; color: #cfe3d6;
+    border: 1px solid #24503c; border-radius: 8px; padding: 8px; }
+  .io .acts { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+  .note { font-size: 10.5px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
+  .readout { margin-top: 10px; font-size: 11px; color: var(--muted); display: flex;
+    flex-wrap: wrap; gap: 3px 16px; }
+  .readout b { color: var(--ink); font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Battle Mode — board layout editor</h1>
+  <p class="sub">Every zone is editable, addable and removable. Drag the numbers, then hand me the Export.</p>
+
+  <div class="hold" id="hold">
+    <div class="screen" id="screen">
+      <div class="topbar" id="topbar"></div>
+      <div class="rail" id="rail">
+        <div class="turn">Turn 5</div>
+        <div class="rule"></div>
+        <div class="phases">
+          <div class="phase">Start</div><div class="phase on">Main</div><div class="phase">Combat</div>
+          <div class="phase">Main 2</div><div class="phase">End</div>
+        </div>
+        <div class="rail-right">
+          <span style="font-size:8.5px;color:var(--metal);font-weight:600">your turn</span>
+          <span class="chip">Land open</span>
+          <span>Board</span><span>1×</span>
+          <span class="my-life">18</span>
+        </div>
+      </div>
+      <div class="slot" id="slot"><div class="plane" id="plane"></div></div>
+      <div class="band" id="band"></div>
+      <div class="dock" id="dock">
+        <div class="prompt">Drag a card onto your half</div>
+        <div class="acts"><span class="btn">Done</span><span class="btn on">Cast</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="knobs" id="knobs"></div>
+  <div class="readout" id="readout"></div>
+
+  <div class="areas" id="areas"></div>
+
+  <div class="io">
+    <div>
+      <h2>Export</h2>
+      <textarea id="out" readonly spellcheck="false"></textarea>
+      <div class="acts">
+        <button class="mini" id="copy">Copy</button>
+        <button class="mini" id="refresh">Refresh</button>
+        <button class="mini" id="reset">Reset to the app</button>
+      </div>
+      <div class="note">Paste this to me. It names every zone, its order, its width and what it holds,
+        plus the table's numbers, so it can go straight into <code>BoardSeats.kt</code>.</div>
+    </div>
+    <div>
+      <h2>Import</h2>
+      <textarea id="in" spellcheck="false" placeholder="Paste an export here, then Apply."></textarea>
+      <div class="acts"><button class="mini" id="apply">Apply</button></div>
+      <div class="note">An export you edited by hand is fine; anything missing keeps its current value.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ---- the app's own numbers -------------------------------------------------
+const CARD_ASPECT = 63 / 88;
+const BAND_CAP = 130;
+const BAND_SHARE_SHORT = 0.24;
+const TOP_BAR = { compact: 32, full: 36 };
+const RAIL = 30;
+const SCREEN = { w: 914, h: 411 };
+
+// what a zone can hold
+const HOLDS = ["creatures", "lands", "trinkets", "hand", "piles", "spacer"];
+const HOLDS_LABEL = {
+  creatures: "creatures", lands: "lands", trinkets: "artifacts & enchantments",
+  hand: "hand", piles: "deck, graveyard, exile", spacer: "nothing (a gap)",
+};
+
+// the game to look at
+// real printings, resolved from Scryfall ahead of time so the page never waits on an API
+const CARDS = {
+ "Forest": "https://cards.scryfall.io/normal/front/2/e/2e781bfd-f8cb-4d20-b977-4359f3a21311.jpg?1791578317",
+ "Island": "https://cards.scryfall.io/normal/front/1/3/1335d293-3dd2-4f13-bd2c-22181f4528ee.jpg?1791578424",
+ "Command Tower": "https://cards.scryfall.io/normal/front/a/7/a73297d2-580c-4174-a427-265f6916d09f.jpg?1793021256",
+ "Overgrown Tomb": "https://cards.scryfall.io/normal/front/a/d/ad7e18e2-c033-4b6c-86e8-d0e5cc824cfd.jpg?1793894789",
+ "Swamp": "https://cards.scryfall.io/normal/front/b/2/b233b117-9369-45c1-80c5-cc857386b6be.jpg?1791578437",
+ "Barren Moor": "https://cards.scryfall.io/normal/front/3/8/380eb7fd-bc79-4cad-9c2b-9b2b10761a72.jpg?1783909580",
+ "Llanowar Elves": "https://cards.scryfall.io/normal/front/6/a/6a0b230b-d391-4998-a3f7-7b158a0ec2cd.jpg?1783909057",
+ "Grizzly Bears": "https://cards.scryfall.io/normal/front/4/0/409f9b88-f03e-40b6-9883-68c14c37c0de.jpg?1783943001",
+ "Arbor Elf": "https://cards.scryfall.io/normal/front/4/b/4b81165e-f091-4211-8b47-5ea6868b0d4c.jpg?1783935136",
+ "Vampire Nighthawk": "https://cards.scryfall.io/normal/front/7/a/7aff07f9-9528-4149-9af0-f4e3c66c9dc5.jpg?1787562825",
+ "Bloodghast": "https://cards.scryfall.io/normal/front/c/e/cee85485-598f-4dfc-aa0b-7b1de86c7788.jpg?1783903786",
+ "Sol Ring": "https://cards.scryfall.io/normal/front/f/c/fc817e07-c1f3-469f-9cf7-0945dea7400f.jpg?1793021181",
+ "Rancor": "https://cards.scryfall.io/normal/front/8/6/86d6b411-4a31-4bfc-8dd6-e19f553bb29b.jpg?1783921864",
+ "Charcoal Diamond": "https://cards.scryfall.io/normal/front/f/0/f0475c79-bc7f-4de8-a020-226bc658d303.jpg?1783922679",
+ "Cultivate": "https://cards.scryfall.io/normal/front/a/7/a78f5d3f-74d6-4ec1-89c4-e24639d3f4ba.jpg?1793281380",
+ "Beast Within": "https://cards.scryfall.io/normal/front/1/9/1929cf4b-0d18-4f7d-a631-621a378ff015.jpg?1793281367",
+ "Eternal Witness": "https://cards.scryfall.io/normal/front/3/9/39704000-65d3-4d39-849e-a3b617376bbc.jpg?1783915632",
+ "Harmonize": "https://cards.scryfall.io/normal/front/4/e/4e9c9e24-7f41-402c-b346-e553cee90c58.jpg?1793281397",
+ "Overrun": "https://cards.scryfall.io/normal/front/1/d/1d8e9cbb-8bf4-4a48-a58e-79deb3abdf7f.jpg?1783909056"
+};
+const artOf = (n) => CARDS[n] || null;
+const MINE = {
+  library: 29, graveyard: 2, exile: 0,
+  lands: ['Forest', 'Forest', 'Island', 'Command Tower'],
+  creatures: [['Llanowar Elves', '1/1'], ['Grizzly Bears', '2/2', true], ['Arbor Elf', '1/1']],
+  trinkets: ['Sol Ring', 'Rancor'],
+  hand: ['Forest', 'Cultivate', 'Beast Within', 'Eternal Witness', 'Harmonize', 'Overrun'],
+};
+const THEIRS = {
+  library: 34, graveyard: 4, exile: 1, hand: 5,
+  lands: ['Swamp', 'Swamp', 'Barren Moor'],
+  creatures: [['Vampire Nighthawk', '2/3'], ['Bloodghast', '2/1']],
+  trinkets: ['Charcoal Diamond'],
+};
+
+// ---- the layout being argued about ---------------------------------------
+function defaultConfig() {
+  return {
+    kind: "deckforge.battle.board",
+    version: 1,
+    screen: { widthDp: SCREEN.w, heightDp: SCREEN.h },
+    table: { tiltDeg: 20, farScale: 0.85, farSeatShare: 0.5, bandShare: 0.25, topBarDp: 36, railDp: 30 },
+    seats: {
+      far: {
+        bandShare: 0.50,
+        band: [
+          { id: "piles", label: "GY/EX", holds: "piles", width: 0.8, align: "start" },
+          { id: "lands", label: "Lands", holds: "lands", width: 1.3, align: "start" },
+          { id: "hand", label: "Hand", holds: "hand", width: 0.8, align: "center" },
+          { id: "ae", label: "A&E", holds: "trinkets", width: 1.0, align: "end" },
+        ],
+        rank: [{ id: "creatures", label: "", holds: "creatures", share: 2.2 }],
+      },
+      near: {
+        rank: [{ id: "creatures", label: "Your creatures", holds: "creatures", share: 2.2 }],
+        band: [
+          { id: "piles", label: "GY/EX", holds: "piles", width: 0.7, align: "start" },
+          { id: "lands", label: "Lands", holds: "lands", width: 1.6, align: "start" },
+          { id: "hand", label: "Hand", holds: "hand", width: 1.4, align: "center" },
+          { id: "ae", label: "A&E", holds: "trinkets", width: 1.6, align: "end" },
+        ],
+      },
+    },
+  };
+}
+
+let cfg = defaultConfig();
+let uid = 1;
+const nextId = (kind) => kind + "-" + (uid++);
+
+// ---- the app's arithmetic -------------------------------------------------
+function metrics(h, bandShare) {
+  const compact = h < 320;
+  const topBar = compact ? TOP_BAR.compact : TOP_BAR.full;
+  const share = compact ? BAND_SHARE_SHORT : bandShare;
+  const floor = h * 0.22;
+  const handCard = Math.min(Math.max(h * share, Math.min(floor, BAND_CAP)), BAND_CAP);
+  const handBand = handCard + (compact ? 4 : 8);
+  const stage = Math.max(h - RAIL - handBand - topBar, 24);
+  return { compact, topBar, rail: RAIL, handCard, handBand, stage };
+}
+
+function depth(stage) {
+  const t = cfg.table.tiltDeg * Math.PI / 180;
+  const cos = Math.cos(t), sin = Math.sin(t);
+  const far = cfg.table.farScale;
+  const fill = cos * far;
+  const board = stage / fill;
+  const eye = far * board * sin / (1 - far);
+  const drawn = (y) => y <= 0 ? 0 : y * cos * eye / (eye + y * sin);
+  const seatLine = drawn(board * (1 - cfg.table.farSeatShare));
+  return { cos, sin, fill, board, eye, drawn, seatLine };
+}
+
+const boardCardWidth = (avail, n, h, gap) =>
+  n <= 0 ? 22 : Math.max(Math.min((avail - gap * (n - 1)) / n, h * CARD_ASPECT), 22);
+const handStep = (avail, n, w, gap) => n <= 1 ? 0 : Math.min((avail - w) / (n - 1), w + gap);
+function handFanWidth(avail, n, w, share = 0.46, step = 0.42) {
+  const cap = Math.max(avail * share, w);
+  if (n <= 0) return Math.min(Math.max(avail * 0.16, w), cap);
+  return Math.min(Math.max(w + step * w * (n - 1), w), cap);
+}
+
+// ---- pieces ---------------------------------------------------------------
+function cardEl(name, pt, tapped, h) {
+  const w = h * CARD_ASPECT;
+  const el = document.createElement('div');
+  el.className = 'card' + (tapped ? ' tapped' : '');
+  el.style.width = w.toFixed(1) + 'px';
+  el.style.height = h.toFixed(1) + 'px';
+  const url = CARDS[name];
+  if (url) {
+    el.style.background = 'url("' + url + '") center / 100% 100% no-repeat';
+  } else {
+    el.style.background = 'linear-gradient(160deg,#3a3f38,#22261f)';
+    el.textContent = name;
+  }
+  return el;
+}
+
+function backEl(h) {
+  const el = document.createElement('div');
+  el.className = 'back';
+  el.style.width = (h * CARD_ASPECT).toFixed(1) + 'px';
+  el.style.height = h.toFixed(1) + 'px';
+  return el;
+}
+function labelEl(text, align) {
+  const el = document.createElement('div');
+  el.className = 'zlabel' + (align === 'center' ? ' mid' : align === 'end' ? ' end' : '');
+  el.textContent = text;
+  return el;
+}
+function pileEl(seat, deckH, far) {
+  const box = document.createElement('div');
+  box.style.cssText = 'display:flex;flex-direction:column;gap:2px;align-items:' +
+    (far ? 'flex-start' : 'flex-start') + ';justify-content:' + (far ? 'flex-start' : 'flex-end');
+  const deck = backEl(deckH);
+  const badge = document.createElement('div');
+  badge.className = 'badge';
+  badge.textContent = seat.library;
+  deck.appendChild(badge);
+  const gyex = document.createElement('div');
+  gyex.className = 'gyex';
+  gyex.innerHTML = '<span class="pilechip">GY ' + seat.graveyard + '</span>' +
+    '<span class="pilechip">EX ' + seat.exile + '</span>';
+  if (far) { box.append(deck, gyex); } else { box.append(gyex, deck); }
+  return box;
+}
+
+// one zone on a band: a label and what it holds, given a share of the width
+function bandZoneEl(zone, seat, height, far) {
+  const el = document.createElement('div');
+  el.className = 'zone';
+  el.style.flex = String(zone.width);
+  const labelH = 8;
+  const cardH = Math.max(height - labelH - 3, 12);
+  const deckH = Math.max(height - 20, 14);
+
+  if (zone.label) el.appendChild(labelEl(zone.label, zone.align));
+
+  if (zone.holds === 'piles') {
+    el.appendChild(pileEl(seat, Math.min(deckH, height - (zone.label ? labelH : 0) - 2), far));
+    return el;
+  }
+
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.style.justifyContent = zone.align === 'end' ? 'flex-end'
+    : zone.align === 'center' ? 'center' : 'flex-start';
+
+  if (zone.holds === 'lands') {
+    seat.lands.forEach((n) => row.appendChild(cardEl(n, null, false, cardH)));
+  } else if (zone.holds === 'trinkets') {
+    seat.trinkets.forEach((n) => row.appendChild(cardEl(n, null, false, cardH)));
+  } else if (zone.holds === 'hand') {
+    if (far) {
+      const n = Math.min(seat.hand, 8);
+      const bw = cardH * CARD_ASPECT;
+      for (let i = 0; i < n; i++) {
+        const b = backEl(cardH);
+        if (i) b.style.marginLeft = (-bw * 0.58).toFixed(1) + 'px';
+        row.appendChild(b);
+      }
+    } else if (seat.hand) {
+      const bw = cardH * CARD_ASPECT;
+      const step = Math.max(bw * 0.35, bw * 0.42);
+      seat.hand.forEach((n, i) => {
+        const c = cardEl(n, null, false, cardH);
+        if (i) c.style.marginLeft = (step - bw).toFixed(1) + 'px';
+        row.appendChild(c);
+      });
+    }
+  } else if (zone.holds === 'spacer') {
+    // a gap: nothing in it, which is the point
+  }
+  el.appendChild(row);
+  return el;
+}
+
+// one row inside a leaning half
+function rankRowEl(row0, height, far) {
+  const el = document.createElement('div');
+  el.className = 'rankrow';
+  el.style.height = height.toFixed(1) + 'px';
+  el.style.flex = String(row0.share);
+  if (row0.label) el.appendChild(labelEl(row0.label, 'center'));
+  const row = document.createElement('div');
+  row.className = 'row center';
+  const inner = SCREEN.w - 24;
+
+  if (row0.holds === 'creatures') {
+    if (!far && !row0.never) { /* keep going */ }
+    const list = far ? THEIRS.creatures : MINE.creatures;
+    if (!list.length) {
+      const none = document.createElement('div');
+      none.className = 'empty';
+      none.textContent = far ? 'Nothing of theirs in play' : 'Nothing of yours on the table';
+      row.appendChild(none);
+    } else {
+      const cardH = Math.max(height - (row0.label ? 12 : 4), 16);
+      const cw = boardCardWidth(inner, list.length, cardH, 3);
+      list.forEach(([n, pt, tapped]) => {
+        const c = cardEl(n, pt, tapped, cardH);
+        c.style.width = cw.toFixed(1) + 'px';
+        c.style.height = (cw / CARD_ASPECT).toFixed(1) + 'px';
+        row.appendChild(c);
+      });
+    }
+  } else if (row0.holds === 'lands') {
+    const list = far ? THEIRS.lands : MINE.lands;
+    const cardH = Math.max(height - (row0.label ? 12 : 4), 14);
+    const cw = boardCardWidth(inner, list.length, cardH, 3);
+    list.forEach((n) => {
+      const c = cardEl(n, null, false, cardH);
+      c.style.width = cw.toFixed(1) + 'px';
+      c.style.height = (cw / CARD_ASPECT).toFixed(1) + 'px';
+      row.appendChild(c);
+    });
+  } else if (row0.holds === 'trinkets') {
+    const list = far ? THEIRS.trinkets : MINE.trinkets;
+    const cardH = Math.max(height - (row0.label ? 12 : 4), 14);
+    const cw = boardCardWidth(inner, list.length, cardH, 3);
+    list.forEach((n) => {
+      const c = cardEl(n, null, false, cardH);
+      c.style.width = cw.toFixed(1) + 'px';
+      row.appendChild(c);
+    });
+  } else if (row0.holds === 'piles') {
+    row.appendChild(pileEl(far ? THEIRS : MINE, Math.max(height - 14, 16), far));
+  } else if (row0.holds === 'hand') {
+    if (far) {
+      const n = Math.min(THEIRS.hand, 8);
+      for (let i = 0; i < n; i++) {
+        const b = backEl(Math.max(height - (row0.label ? 12 : 4), 14));
+        if (i) b.style.marginLeft = '-' + (b.offsetWidth * 0.5).toFixed(0) + 'px';
+        row.appendChild(b);
+      }
+    } else {
+      const cardH = Math.max(height - (row0.label ? 12 : 4), 14);
+      const bw = cardH * CARD_ASPECT;
+      MINE.hand.forEach((n, i) => {
+        const c = cardEl(n, null, false, cardH);
+        if (i) c.style.marginLeft = (bw * 0.42 - bw).toFixed(1) + 'px';
+        row.appendChild(c);
+      });
+    }
+  }
+  el.appendChild(row);
+  return el;
+}
+
+// ---- paint ---------------------------------------------------------------
+function paint() {
+  const m = metrics(cfg.screen.heightDp, cfg.table.bandShare);
+  const d = depth(m.stage);
+  const root = document.documentElement.style;
+
+  root.setProperty("--screen-w", cfg.screen.widthDp + "px");
+  root.setProperty("--screen-h", cfg.screen.heightDp + "px");
+  root.setProperty("--plane-h", d.board.toFixed(1) + "px");
+  root.setProperty("--tilt", cfg.table.tiltDeg + "deg");
+
+  // the top bar
+  const topbar = document.getElementById("topbar");
+  topbar.style.height = m.topBar + "px";
+  topbar.innerHTML =
+    '<div class="hub"><div class="disc">S</div><div class="who">Sparring</div>' +
+    '<div class="their-life">15</div></div>' +
+    '<div class="top-right"><span>5 in hand · 34 left</span><span>Log</span><span>Leave</span></div>';
+
+  const rail = document.getElementById("rail");
+  rail.style.top = m.topBar + "px";
+  rail.style.height = m.rail + "px";
+
+  const slot = document.getElementById("slot");
+  slot.style.top = (m.topBar + m.rail) + "px";
+  slot.style.height = m.stage + "px";
+  slot.style.perspective = d.eye.toFixed(1) + "px";
+  slot.style.perspectiveOrigin = "50% 100%";
+
+  const plane = document.getElementById("plane");
+  plane.style.height = d.board.toFixed(1) + "px";
+
+  // their side: their back edge, then their rank facing the middle
+  const farH = d.board * cfg.table.farSeatShare;
+  const farBandH = Math.min(Math.max(farH * cfg.seats.far.bandShare, 14), 150);
+  const farBand = document.createElement("div");
+  farBand.className = "band";
+  farBand.style.height = farBandH.toFixed(1) + "px";
+  farBand.style.padding = "0 6px";
+  cfg.seats.far.band.forEach((z) => farBand.appendChild(bandZoneEl(z, THEIRS, farBandH, true)));
+  const farRank = document.createElement("div");
+  farRank.style.cssText = "flex:1;display:flex;flex-direction:column;min-height:0;padding:0 6px";
+  cfg.seats.far.rank.forEach((r) => farRank.appendChild(rankRowEl(r, farH - farBandH, true)));
+
+  plane.innerHTML = "";
+  plane.appendChild(farBand);
+  const mid = document.createElement("div");
+  mid.className = "midline";
+  plane.appendChild(mid);
+  const nearRank = document.createElement("div");
+  nearRank.style.cssText = "flex:1;display:flex;flex-direction:column;min-height:0;padding:3px 8px 5px 8px";
+  cfg.seats.near.rank.forEach((r) => nearRank.appendChild(rankRowEl(r, d.seatLine - 8, false)));
+  plane.appendChild(nearRank);
+
+  // the row you sit at, flat along the bottom
+  const band = document.getElementById("band");
+  band.innerHTML = "";
+  band.style.cssText = "position:absolute;left:0;right:0;bottom:0;height:" + m.handBand.toFixed(1) +
+    "px;background:rgba(23,51,39,.34);border-top:1px solid rgba(216,196,138,.12);display:flex;align-items:flex-end";
+  const ns = cfg.seats.near.band;
+  const handZone = ns.find((z) => z.holds === "hand");
+  const handW = handZone
+    ? handFanWidth(cfg.screen.widthDp, MINE.hand.length, m.handCard * CARD_ASPECT) * 1.6
+    : 0;
+  ns.forEach((z) => band.appendChild(bandZoneEl(z, MINE, m.handBand, false)));
+
+  // the dock, above the row, over the near right corner of the table
+  const dock = document.getElementById("dock");
+  dock.style.bottom = (m.handBand + 6) + "px";
+  dock.style.display = ns.some((z) => z.holds === "hand") ? "block" : "none";
+
+  // ---- the readout
+  const top = d.drawn(d.board);
+  const bandEnd = d.drawn(d.board - farBandH);
+  const lines = [
+    ["window", cfg.screen.widthDp + " × " + cfg.screen.heightDp + "dp"],
+    ["top bar", m.topBar + "dp"],
+    ["turn rail", m.rail + "dp"],
+    ["the table", m.stage.toFixed(0) + "dp"],
+    ["their band", Math.round(top - bandEnd) + "dp"],
+    ["their rank", Math.round(bandEnd - d.seatLine) + "dp"],
+    ["the line", Math.round(m.stage - d.seatLine) + "dp down"],
+    ["your rank", Math.round(d.seatLine) + "dp"],
+    ["your row", m.handBand.toFixed(0) + "dp"],
+    ["plane measured", d.board.toFixed(0) + "dp"],
+    ["eye", d.eye.toFixed(0) + "dp"],
+  ];
+  document.getElementById("readout").innerHTML =
+    lines.map(([k, v]) => "<span>" + k + " <b>" + v + "</b></span>").join("");
+
+  renderEditor();
+  document.getElementById("out").value = JSON.stringify(exportable(), null, 2);
+}
+
+// ---- the controls -------------------------------------------------------
+const KNOBS = [
+  ["tiltDeg", "Tilt", 8, 34, 1, (v) => v + "°"],
+  ["farScale", "Far edge size", 0.70, 0.96, 0.01, (v) => Number(v).toFixed(2)],
+  ["farSeatShare", "Their share of the table", 0.34, 0.66, 0.01, (v) => Number(v).toFixed(2)],
+  ["bandShare", "The row you sit at", 0.16, 0.34, 0.01, (v) => Number(v).toFixed(2)],
+  ["topBarDp", "Top bar", 28, 56, 1, (v) => v + "dp"],
+  ["railDp", "Turn rail", 22, 44, 1, (v) => v + "dp"],
+];
+
+function renderKnobs() {
+  const host = document.getElementById("knobs");
+  host.innerHTML = "";
+  KNOBS.forEach(([key, name, min, max, step, fmt]) => {
+    const box = document.createElement("div");
+    box.className = "knob";
+    box.innerHTML = '<label>' + name + ' <b>' + fmt(cfg.table[key]) + '</b></label>' +
+      '<input type="range" min="' + min + '" max="' + max + '" step="' + step +
+      '" value="' + cfg.table[key] + '">';
+    box.querySelector("input").addEventListener("input", (e) => {
+      cfg.table[key] = Number(e.target.value);
+      box.querySelector("b").textContent = fmt(e.target.value);
+      paint();
+    });
+    host.appendChild(box);
+  });
+}
+
+const AREAS = [
+  ["far.band", "Their band", "Their back edge: piles, lands, their hand, their artifacts."],
+  ["far.rank", "Their rank", "Rows stacked towards the middle of the table."],
+  ["near.rank", "Your rank", "Rows stacked in front of you, up to the middle."],
+  ["near.band", "Your row", "The flat band along the bottom of the screen."],
+];
+
+function readPath(path) {
+  const [seat, part] = path.split(".");
+  return cfg.seats[seat][part];
+}
+
+function renderEditor() {
+  const host = document.getElementById("areas");
+  host.innerHTML = "";
+  AREAS.forEach(([path, title, blurb]) => {
+    const list = readPath(path);
+    const box = document.createElement("div");
+    box.className = "area";
+    box.innerHTML = "<h2>" + title + "</h2><p>" + blurb + "</p>";
+
+    list.forEach((zone, i) => {
+      const row = document.createElement("div");
+      row.className = "zone-edit";
+      const meta = (zone.holds === "hand" || zone.holds === "piles")
+        ? "" : " · " + (zone.width !== undefined ? zone.width : zone.share) + " wide";
+      row.innerHTML =
+        '<div><div class="ze-name">' + (zone.label || HOLDS_LABEL[zone.holds]) + '</div>' +
+        '<div class="ze-meta">' + HOLDS_LABEL[zone.holds] + meta + '</div></div>' +
+        '<div class="ze-tools">' +
+        '<button class="mini" data-up="' + i + '"' + (i === 0 ? " disabled" : "") + '>↑</button>' +
+        '<button class="mini" data-down="' + i + '"' + (i === list.length - 1 ? " disabled" : "") + '>↓</button>' +
+        '<button class="mini" data-del="' + i + '">✕</button></div>' +
+        '<input type="text" value="' + (zone.label || "") + '" placeholder="label" data-label="' + i + '">' +
+        '<select data-holds="' + i + '">' +
+        HOLDS.map((h) => '<option value="' + h + '"' +
+          (zone.holds === h ? " selected" : "") + '>' + HOLDS_LABEL[h] + '</option>').join("") +
+        '</select>' +
+        '<input type="range" min="0.2" max="3" step="0.1" value="' +
+        (zone.width !== undefined ? zone.width : zone.share) + '" data-size="' + i + '">';
+
+      row.querySelector('[data-up="' + i + '"]').onclick = () => {
+        [list[i - 1], list[i]] = [list[i], list[i - 1]]; paint();
+      };
+      row.querySelector('[data-down="' + i + '"]').onclick = () => {
+        [list[i + 1], list[i]] = [list[i], list[i + 1]]; paint();
+      };
+      row.querySelector('[data-del="' + i + '"]').onclick = () => {
+        list.splice(i, 1); paint();
+      };
+      row.querySelector('[data-label="' + i + '"]').oninput = (e) => {
+        list[i].label = e.target.value;
+        document.getElementById("out").value = JSON.stringify(exportable(), null, 2);
+      };
+      row.querySelector('[data-holds="' + i + '"]').onchange = (e) => {
+        list[i].holds = e.target.value; paint();
+      };
+      row.querySelector('[data-size="' + i + '"]').oninput = (e) => {
+        const v = Number(e.target.value);
+        if (list[i].width !== undefined) list[i].width = v; else list[i].share = v;
+        paint();
+      };
+      box.appendChild(row);
+    });
+
+    const add = document.createElement("button");
+    add.className = "addzone";
+    add.textContent = "+ Add a zone";
+    add.onclick = () => {
+      list.push({
+        id: nextId(path),
+        label: "",
+        holds: path.endsWith("band") ? "lands" : "creatures",
+        ...(path.endsWith("band") ? { width: 1.0, align: "start" } : { share: 1.0 }),
+      });
+      paint();
+    };
+    box.appendChild(add);
+    host.appendChild(box);
+  });
+  renderKnobs();
+}
+
+// ---- in and out ----------------------------------------------------------
+function exportable() {
+  // strip anything the renderer invented, so the export is the layout and nothing else
+  const clean = (list, band) => list.map((z) => band
+    ? { id: z.id, label: z.label, holds: z.holds, width: +(z.width ?? 1).toFixed(2), align: z.align || "start" }
+    : { id: z.id, label: z.label, holds: z.holds, share: +(z.share ?? 1).toFixed(2) });
+  return {
+    kind: cfg.kind,
+    version: cfg.version,
+    screen: cfg.screen,
+    table: {
+      tiltDeg: cfg.table.tiltDeg, farScale: cfg.table.farScale,
+      farSeatShare: cfg.table.farSeatShare, bandShare: cfg.table.bandShare,
+      topBarDp: cfg.table.topBarDp, railDp: cfg.table.railDp,
+      farBandShare: cfg.seats.far.bandShare,
+    },
+    seats: {
+      far: { band: clean(cfg.seats.far.band, true), rank: clean(cfg.seats.far.rank, false) },
+      near: { band: clean(cfg.seats.near.band, true), rank: clean(cfg.seats.near.rank, false) },
+    },
+  };
+}
+
+function applyImport(text) {
+  const parsed = JSON.parse(text);
+  if (parsed.table) Object.assign(cfg.table, parsed.table);
+  if (parsed.table && parsed.table.farBandShare !== undefined) {
+    cfg.seats.far.bandShare = parsed.table.farBandShare;
+  }
+  if (parsed.seats) {
+    if (parsed.seats.far) {
+      if (parsed.seats.far.band) cfg.seats.far.band = parsed.seats.far.band;
+      if (parsed.seats.far.rank) cfg.seats.far.rank = parsed.seats.far.rank;
+    }
+    if (parsed.seats.near) {
+      if (parsed.seats.near.band) cfg.seats.near.band = parsed.seats.near.band;
+      if (parsed.seats.near.rank) cfg.seats.near.rank = parsed.seats.near.rank;
+    }
+  }
+  paint();
+}
+
+// ---- wiring --------------------------------------------------------------
+function fit() {
+  const hold = document.getElementById("hold");
+  const scale = Math.min(1, hold.clientWidth / cfg.screen.widthDp);
+  document.documentElement.style.setProperty("--fit", scale);
+  hold.style.height = (cfg.screen.heightDp * scale) + "px";
+}
+
+document.getElementById("copy").onclick = () => {
+  const ta = document.getElementById("out");
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) { /* selecting is the fallback */ }
+};
+document.getElementById("refresh").onclick = () => paint();
+document.getElementById("reset").onclick = () => { cfg = defaultConfig(); paint(); fit(); };
+document.getElementById("apply").onclick = () => {
+  try { applyImport(document.getElementById("in").value); fit(); }
+  catch (e) { alert("That did not parse: " + e.message); }
+};
+
+window.addEventListener("resize", () => { fit(); });
+fit();
+paint();
+</script>
+</body>
+</html>

@@ -549,8 +549,11 @@ function paint() {
   const mid = document.createElement("div");
   mid.className = "midline";
   plane.appendChild(mid);
+  const dockW = cfg.seats.near.band.some((z) => z.holds === "hand")
+    ? Math.min(360, cfg.screen.widthDp * 0.45) * 0.42 : 0;
   const nearRank = document.createElement("div");
-  nearRank.style.cssText = "flex:1;display:flex;flex-direction:column;min-height:0;padding:3px 8px 5px 8px";
+  nearRank.style.cssText = "flex:1;display:flex;flex-direction:column;min-height:0;padding:3px " +
+    (8 + dockW).toFixed(0) + "px 5px 8px";
   cfg.seats.near.rank.forEach((r) => nearRank.appendChild(rankRowEl(r, d.seatLine - 8, false)));
   plane.appendChild(nearRank);
 
@@ -560,11 +563,24 @@ function paint() {
   band.style.cssText = "position:absolute;left:0;right:0;bottom:0;height:" + m.handBand.toFixed(1) +
     "px;background:rgba(23,51,39,.34);border-top:1px solid rgba(216,196,138,.12);display:flex;align-items:flex-end";
   const ns = cfg.seats.near.band;
-  const handZone = ns.find((z) => z.holds === "hand");
-  const handW = handZone
-    ? handFanWidth(cfg.screen.widthDp, MINE.hand.length, m.handCard * CARD_ASPECT) * 1.6
+  const handIdx = ns.findIndex((z) => z.holds === "hand");
+  const handW = handIdx >= 0
+    ? handFanWidth(cfg.screen.widthDp, MINE.hand.length, m.handCard * CARD_ASPECT)
     : 0;
-  ns.forEach((z) => band.appendChild(bandZoneEl(z, MINE, m.handBand, false)));
+  const group = (zones, flex) => {
+    const g = document.createElement("div");
+    g.style.cssText = "display:flex;align-items:flex-end;height:100%;min-width:0;" +
+      "justify-content:flex-end;flex:" + flex;
+    zones.forEach((z) => g.appendChild(bandZoneEl(z, MINE, m.handBand, false)));
+    return g;
+  };
+  if (handIdx < 0) {
+    band.appendChild(group(ns, 1));
+  } else {
+    band.appendChild(group(ns.slice(0, handIdx), 1));
+    band.appendChild(group([ns[handIdx]], "0 0 " + handW.toFixed(1) + "px"));
+    band.appendChild(group(ns.slice(handIdx + 1), 1));
+  }
 
   // the dock, above the row, over the near right corner of the table
   const dock = document.getElementById("dock");
@@ -766,6 +782,22 @@ document.getElementById("apply").onclick = () => {
   try { applyImport(document.getElementById("in").value); fit(); }
   catch (e) { alert("That did not parse: " + e.message); }
 };
+
+// the printings come from Scryfall's CDN: say so if they did not turn up
+(function printings() {
+  const urls = [...new Set(Object.values(CARDS))];
+  let done = 0, ok = 0;
+  const el = document.createElement("div");
+  el.style.cssText = "margin-top:6px;font-size:10.5px;color:var(--muted)";
+  el.textContent = "printings: loading " + urls.length + "…";
+  document.querySelector(".io").appendChild(el);
+  urls.forEach((u) => {
+    const img = new Image();
+    img.onload = () => { ok++; if (++done === urls.length) el.textContent = "printings: " + ok + "/" + urls.length + " loaded"; };
+    img.onerror = () => { if (++done === urls.length) el.textContent = "printings: " + ok + "/" + urls.length + " loaded (the rest were blocked)"; };
+    img.src = u;
+  });
+})();
 
 window.addEventListener("resize", () => { fit(); });
 fit();

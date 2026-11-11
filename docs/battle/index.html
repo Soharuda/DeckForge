@@ -14,6 +14,29 @@
 <h1>Battle Mode</h1>
 <p>Battle Mode is the separate app that plays a DeckForge deck with the XMage rules engine.</p>
 
+<h2>An arena on the draft board</h2>
+<p>0.30.3 is the draft board wearing a restyle, five rounds of it, over the board rather than in
+place of the table. The playmat runs plum to maroon with dark veins, the midline seam is brighter and
+breathes, and each seat carries its colour on the edge of its cards: yours blue, theirs red, a card you
+can act on lit cyan and lifted in the hand. Lands and artifacts of one name merge into a card with a
+count badge, as Arena does it; creatures never merge, and a tap on a merged card goes to an untapped
+copy. A rank counts tapped cards wider so a rank of tapped lands stops overflowing, and the life orbs
+are a ring in the seat's colour with the total inside. Your general wears a gold edge.</p>
+<p>The command zone became a framed column at the left edge of each seat, drawn flat over the tilt so
+it can never be clipped: your library at the foot, then the graveyard, then the general nearest the
+midline, and theirs hanging from the top-left the same way. The slot keeps its place when the general
+is on the battlefield and shows its tax as a badge. With the draft board on, the board is the whole
+screen and the top bar floats over it rather than holding a row.</p>
+<p>Playing a card from the hand is a drag on either board now: the card follows your finger, its slot
+fades, your half of the table lights up and letting go is the play. A tap only opens the card, except
+in an instant window, where a drag answers. Cards drop onto the table on a spring, playable cards
+breathe in the hand, the hand re-fans as it changes, and a permanent that dies scorches to char and
+its ash curves into that seat's graveyard.</p>
+<p>Two of those needed the engine rather than a guess. Deaths come from a watcher that records every
+permanent that went to a graveyard, so a bounce or an exile is no longer mistaken for a death; and the
+tax badge reads the commander play count the engine itself charges from, after finding that the event
+it had been counted on is never raised in this port.</p>
+
 <h2>0.30.2: one phase pill, corners that hold what they hold, the draft first</h2>
 <p>The phase rail is gone: five segments that shifted the whole bar every time the turn moved
 into the next phase are now one pill of a fixed size whose word changes, with every slot around
@@ -23,7 +46,7 @@ were drawing over the lands lane, and on the draft board the deck came up under 
 card. Deck, general and rank now have a place of their own.</p>
 <p>And the draft board is the default, once: a phone that had "table" saved opens on the draft
 and remembers its own choice from then on.</p>
-<p><a href="BattleMode-0.30.2.apk">Download Battle Mode 0.30.2</a></p>
+<p><a href="BattleMode-0.30.3.apk">Download Battle Mode 0.30.3</a></p>
 
 <h2>0.30.1: the board that was working, back</h2>
 <p>0.30.0 came up wrong on the phone - the table with no cards on it, the draft with
@@ -208,6 +231,6 @@ can do the same thing itself, from the deck menu, and checks the download agains
 checksum and signing key before handing it to Android.</p>
 <p>Both apps are signed with the same key on purpose: that is how DeckForge knows the app that
 answers <code>com.soharuda.deckforge.battle.action.PLAY</code> is ours and not an impostor.</p>
-<p>SHA-256 of the APK: <code>3d1640956b5698d22f25ff2fe3eba46ce2d0b7987c16e463370d54a6884e8e3a</code></p>
+<p>SHA-256 of the APK: <code>362da4655db8018c8b59f0f473005158cc4c989676ef4b1c8d9cfdf842b95b55</code></p>
 </body>
 </html>

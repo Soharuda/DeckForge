@@ -226,9 +226,9 @@
     doing the arithmetic: mana, combat, the stack, and every trigger you would rather not track.</p>
 
     <div class="get">
-      <a class="btn" href="BattleMode-0.30.3.apk">Download <small>0.30.3</small></a>
+      <a class="btn" href="BattleMode-0.31.0.apk">Download <small>0.31.0</small></a>
       <ul class="orbs">
-        <li class="orb"><b>0.30.3</b><span>version</span></li>
+        <li class="orb"><b>0.31.0</b><span>version</span></li>
         <li class="orb"><b>28.5 MB</b><span>size</span></li>
         <li class="orb"><b>8.0+</b><span>android</span></li>
       </ul>
@@ -238,9 +238,37 @@
 
   <h2 class="sec">Latest</h2>
   <article class="star">
-    <span class="chip">0.30.3</span>
-    <h3>An arena on the draft board</h3>
-    <p>0.30.3 is the draft board wearing a restyle, five rounds of it, over the board rather than in
+    <span class="chip">0.31.0</span>
+    <h3>One board</h3>
+    <p>The switch in the top bar is gone. Battle Mode has one board now: the draft's, the one that has
+been the default since 0.30.2 and the one every card, pile and rank on it was rebuilt for. The old
+three-lane table, its seat stages, the band along the bottom you played from and the depth model behind
+them are deleted rather than left behind a toggle - nine hundred lines of a board nobody opens. What
+the switch remembered is no longer read, because the choice it offered only has one side left.</p>
+<p>The corner column is the only corner the app draws, so the arithmetic in its test is the app's:
+your library at the foot, the graveyard standing on it, the general above that, three cards and his
+word sized from the near half of the window so nothing is ever drawn over the rank beside it. An empty
+graveyard keeps its place in the column instead of the column closing up.</p>
+<p>Two faces of the same card are finally one card. Sea Gate Restoration, Bala Ged Recovery, Tangled
+Florahedron and Shatterskull Smashing are a sorcery or a creature by type with a land on the other
+face, so every one of them sat in hand looking unplayable and the land drops they were meant to be went
+unused - the AI's as well, since it decided what was a land by asking the card's types.</p>
+<p>So the seat stops guessing at all. It asks the engine's own <code>getPlayable</code> for the list of
+what it may play or cast, so a cost reducer, an alternative cost, a treasure or a modal face counts the
+way the engine counts it, and the land drop is the engine's count rather than a marker kept beside it
+that could drift. Both faces answer to their own ids, so the land you tapped for is still the card in
+your hand. 94 battle tests green, including a new one that plays a deck of two-faced lands and waits
+for the land face to actually arrive on the table.</p>
+  </article>
+
+  <h2 class="sec">Before this</h2>
+  
+    <details class="rel" open>
+      <summary>
+        <span class="chip">0.30.3</span>
+        <span class="rel-title">An arena on the draft board</span>
+      </summary>
+      <div class="rel-body"><p>0.30.3 is the draft board wearing a restyle, five rounds of it, over the board rather than in
 place of the table. The playmat runs plum to maroon with dark veins, the midline seam is brighter and
 breathes, and each seat carries its colour on the edge of its cards: yours blue, theirs red, a card you
 can act on lit cyan and lifted in the hand. Lands and artifacts of one name merge into a card with a
@@ -260,11 +288,8 @@ its ash curves into that seat's graveyard.</p>
 <p>Two of those needed the engine rather than a guess. Deaths come from a watcher that records every
 permanent that went to a graveyard, so a bounce or an exile is no longer mistaken for a death; and the
 tax badge reads the commander play count the engine itself charges from, after finding that the event
-it had been counted on is never raised in this port.</p>
-  </article>
-
-  <h2 class="sec">Before this</h2>
-  
+it had been counted on is never raised in this port.</p></div>
+    </details>
     <details class="rel" open>
       <summary>
         <span class="chip">0.30.2</span>

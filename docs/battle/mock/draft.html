@@ -222,6 +222,11 @@ const STARTER = {
   ]
 };
 
+window.onerror = (m, src, line, col) => {
+  const n = document.getElementById("note");
+  if (n) n.textContent = "error: " + m + " @ " + line + ":" + col;
+};
+
 const KINDS = ["label","pill","button","panel","card","cardrow","divider"];
 const SAMPLE = Object.keys(CARDS);
 
@@ -599,7 +604,9 @@ function exportShape(){
     })};
 }
 
-paintStage(); paintList(); paintInspector(); commit();
+try { paintStage(); paintList(); paintInspector(); commit(); }
+catch (err) { const n = document.getElementById("note");
+  if (n) n.textContent = "startup: " + err.message + " | " + String(err.stack || "").split("\n")[1]; }
 </script>
 </body>
 </html>

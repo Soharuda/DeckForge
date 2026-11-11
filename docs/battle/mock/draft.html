@@ -461,6 +461,16 @@ stage.addEventListener("pointerdown", ev => {
   ev.preventDefault();
 });
 
+/* A tap selects, whether it arrives as a pointer or as a plain click: a click with no pointer
+   behind it (a test harness, a keyboard) still has to open the inspector. */
+stage.addEventListener("click", ev => {
+  const node = ev.target.closest(".el");
+  const id = node ? node.dataset.id : null;
+  if (id === sel) return;
+  sel = id;
+  paintStage(); paintList(); paintInspector();
+});
+
 window.addEventListener("pointermove", ev => {
   if (!grip) return;
   const e = elById(grip.id); if (!e) return;

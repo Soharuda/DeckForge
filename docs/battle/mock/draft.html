@@ -339,7 +339,7 @@ function rowNode(e){
     slot.style.width = (i === n - 1 ? cardW : step) + "px";
     slot.style.marginLeft = i === 0 ? 0 : "-" + (cardW - step) + "px";
     slot.style.position = "relative";
-    slot.appendChild(cardNode(names[i % names.length], cardW, byH, false));
+    slot.appendChild(cardNode(names[i % names.length], cardW, byHeight, false));
     row.appendChild(slot);
   }
   return row;

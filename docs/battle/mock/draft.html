@@ -22,7 +22,8 @@
   .boardbox{background:var(--ground);border:1px solid rgba(216,196,138,.18);border-radius:12px;
     padding:10px;overflow:hidden}
   .stagewrap{position:relative;width:100%;overflow:hidden}
-  .stage{position:absolute;top:0;left:0;background:var(--ground);border-radius:8px;
+  .stage{position:absolute;top:0;left:0;border-radius:8px;
+    background:radial-gradient(120% 90% at 50% 50%, #382950 0%, var(--mat-a) 40%, var(--mat-b) 80%, #150e20 100%);
     transform-origin:top left;overflow:hidden;cursor:crosshair}
   .el{position:absolute;min-width:8px;min-height:8px;cursor:move;user-select:none}
   .el.sel{outline:1.5px solid var(--sel);outline-offset:0}

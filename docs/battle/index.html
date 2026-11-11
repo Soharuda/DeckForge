@@ -4,18 +4,243 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Battle Mode for DeckForge</title>
+<meta name="description" content="Battle Mode plays a DeckForge deck against an opponent, with the XMage rules engine underneath.">
+<meta name="theme-color" content="#1a1228">
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 34rem; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.5; }
-  code { background: rgba(128,128,128,.15); padding: .1rem .3rem; border-radius: .25rem; }
-  h2 { font-size: 1rem; margin-top: 2rem; }
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    color-scheme: dark;
+    --parch: #efe6d8;
+    --muted: #ab9dbd;
+    --brass: #e8b35a;
+    --brass-lo: #b98736;
+    --line: rgba(232,179,90,.26);
+    --panel: rgba(255,255,255,.045);
+    --panel-2: rgba(255,255,255,.02);
+    --me: #5c8bea;
+    --them: #d8402f;
+    --seam: #e0301e;
+    --radius: 14px;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  html { background: #140e1f; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    color: var(--parch);
+    background:
+      radial-gradient(120% 55% at 50% -5%, rgba(224,48,30,.13), transparent 62%),
+      radial-gradient(95% 45% at 50% 102%, rgba(92,139,234,.12), transparent 60%),
+      repeating-linear-gradient(118deg, rgba(255,255,255,.017) 0 2px, transparent 2px 26px),
+      linear-gradient(168deg, #2b2040 0%, #241a36 42%, #1a1228 72%, #140e1f 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(60% 40% at 12% 8%, rgba(0,0,0,.38), transparent 70%),
+      radial-gradient(55% 35% at 88% 92%, rgba(0,0,0,.42), transparent 70%);
+  }
+  .wrap { position: relative; max-width: 47rem; margin: 0 auto; padding: 0 1.25rem 4.5rem; }
+
+  header.hero { padding: 3.2rem 0 2.2rem; position: relative; }
+  .fan { position: absolute; top: 1.1rem; right: -1rem; width: 12.5rem; height: 8rem; opacity: .5; }
+  .eyebrow {
+    font: 600 .72rem/1 var(--sans);
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin: 0 0 .9rem;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.6rem, 11vw, 4.1rem);
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: .01em;
+    margin: 0 0 .7rem;
+    color: #fbf4e6;
+    text-shadow: 0 1px 0 rgba(0,0,0,.5), 0 0 34px rgba(232,179,90,.18);
+  }
+  .lede { margin: 0; max-width: 34rem; color: var(--parch); font-size: 1.04rem; }
+  .seam {
+    height: 2px; margin: 1.9rem 0 0;
+    background: linear-gradient(90deg, transparent, var(--seam) 18%, #ff6a4a 50%, var(--seam) 82%, transparent);
+    box-shadow: 0 0 18px 2px rgba(224,48,30,.55);
+    opacity: .85;
+  }
+
+  .get { display: flex; flex-wrap: wrap; align-items: center; gap: 1.1rem; margin-top: 1.9rem; }
+  .btn {
+    display: inline-flex; align-items: baseline; gap: .55rem;
+    padding: .82rem 1.35rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #f0c778, var(--brass) 55%, #c9963f);
+    color: #241a12;
+    font-weight: 700;
+    font-size: 1.02rem;
+    text-decoration: none;
+    border: 1px solid #f4d79b;
+    box-shadow: 0 8px 24px rgba(232,179,90,.22), inset 0 1px 0 rgba(255,255,255,.55);
+  }
+  .btn:hover { filter: brightness(1.06); }
+  .btn:focus-visible, summary:focus-visible, a:focus-visible {
+    outline: 2px solid var(--brass); outline-offset: 3px;
+  }
+  .btn small { font-weight: 600; opacity: .72; font-size: .82rem; }
+  .orbs { display: flex; gap: .7rem; margin: 0; padding: 0; list-style: none; }
+  .orb {
+    width: 3.4rem; height: 3.4rem; border-radius: 50%;
+    display: grid; place-content: center; text-align: center;
+    background: radial-gradient(circle at 50% 30%, #2c2044, #150e26 70%);
+    border: 1.5px solid var(--brass-lo);
+    box-shadow: inset 0 0 12px rgba(0,0,0,.7), 0 0 0 3px rgba(232,179,90,.08);
+  }
+  .orb b { display: block; font: 700 .82rem/1.15 var(--sans); color: #ffe9b8; }
+  .orb span { display: block; font: 600 .52rem/1.3 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+  h2.sec {
+    font: 600 .72rem/1 var(--sans);
+    letter-spacing: .2em; text-transform: uppercase;
+    color: var(--muted);
+    margin: 2.6rem 0 .9rem;
+    display: flex; align-items: center; gap: .8rem;
+  }
+  h2.sec::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  .rel, .star {
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid rgba(255,255,255,.07);
+    border-left: 2px solid var(--brass-lo);
+    border-radius: var(--radius);
+    padding: 1.15rem 1.25rem 1.3rem;
+    margin-bottom: .9rem;
+  }
+  .star {
+    border-left-color: var(--brass);
+    box-shadow: 0 18px 50px -28px rgba(232,179,90,.5), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .star h3 {
+    font-family: var(--serif); font-weight: 600; font-size: clamp(1.35rem, 4.6vw, 1.75rem);
+    line-height: 1.2; margin: .55rem 0 .8rem; color: #fbf4e6;
+  }
+  .rel-title {
+    font-family: var(--serif); font-size: 1.16rem; font-weight: 600; color: #f7eedf;
+  }
+  .chip {
+    display: inline-block;
+    font: 700 .68rem/1 var(--mono);
+    letter-spacing: .06em;
+    color: #241a12;
+    background: linear-gradient(180deg, #f0c778, #cf9c44);
+    padding: .3rem .5rem; border-radius: 6px;
+    margin-right: .6rem;
+    vertical-align: .12em;
+  }
+  .chip--none { background: rgba(255,255,255,.1); color: var(--muted); }
+  .rel p, .star p { margin: 0 0 .85rem; color: #e6dceb; }
+  .rel p:last-child, .star p:last-child { margin-bottom: 0; }
+  code {
+    font-family: var(--mono); font-size: .84em;
+    background: rgba(232,179,90,.12); color: #ffe9b8;
+    padding: .1rem .35rem; border-radius: 4px;
+    overflow-wrap: anywhere;
+  }
+
+  details.rel { padding: .2rem 1.25rem; }
+  details.rel summary {
+    cursor: pointer; list-style: none; padding: .95rem 0;
+    display: flex; align-items: center; gap: .1rem;
+  }
+  details.rel summary::-webkit-details-marker { display: none; }
+  details.rel summary::after {
+    content: ""; margin-left: auto; width: .5rem; height: .5rem;
+    border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+    transform: rotate(45deg); transition: transform .18s ease;
+  }
+  details.rel[open] summary::after { transform: rotate(-135deg); }
+  details.rel[open] { padding-bottom: 1.1rem; }
+  details.rel .rel-body { padding-top: .2rem; }
+  @media (prefers-reduced-motion: reduce) { details.rel summary::after { transition: none; } }
+
+  footer { margin-top: 2.6rem; border-top: 1px solid var(--line); padding-top: 1.4rem; }
+  footer h2 {
+    font: 600 .72rem/1 var(--sans); letter-spacing: .2em; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 .9rem;
+  }
+  footer p { margin: 0 0 .8rem; color: #dfd5e6; font-size: .95rem; }
+  .key { display: block; font-family: var(--mono); font-size: .78rem; color: var(--muted); overflow-wrap: anywhere; }
+  .seats { display: flex; gap: .5rem; margin: 1rem 0 0; }
+  .seat { flex: 1; height: 3px; border-radius: 2px; }
+  .seat.me { background: linear-gradient(90deg, transparent, var(--me)); }
+  .seat.them { background: linear-gradient(90deg, var(--them), transparent); }
+  @media (max-width: 30rem) {
+    .fan { display: none; }
+    .orbs { width: 100%; }
+  }
 </style>
 </head>
 <body>
-<h1>Battle Mode</h1>
-<p>Battle Mode is the separate app that plays a DeckForge deck with the XMage rules engine.</p>
+<div class="wrap">
 
-<h2>An arena on the draft board</h2>
-<p>0.30.3 is the draft board wearing a restyle, five rounds of it, over the board rather than in
+  <header class="hero">
+    
+<svg class="fan" viewBox="0 0 300 190" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="back" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b2c56"/><stop offset="1" stop-color="#1c1330"/>
+    </linearGradient>
+    <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f0c778"/><stop offset="1" stop-color="#a9772b"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <g transform="rotate(-16 150 170)">
+      <rect x="46" y="22" width="88" height="124" rx="7" fill="url(#back)" stroke="url(#brass)" stroke-width="1.6"/>
+      <rect x="54" y="30" width="72" height="108" rx="4" fill="none" stroke="rgba(232,179,90,.45)"/>
+    </g>
+    <g transform="rotate(16 150 170)">
+      <rect x="166" y="22" width="88" height="124" rx="7" fill="url(#back)" stroke="url(#brass)" stroke-width="1.6"/>
+      <rect x="174" y="30" width="72" height="108" rx="4" fill="none" stroke="rgba(232,179,90,.45)"/>
+    </g>
+    <g>
+      <rect x="106" y="10" width="88" height="124" rx="7" fill="url(#back)" stroke="url(#brass)" stroke-width="2"/>
+      <rect x="114" y="18" width="72" height="108" rx="4" fill="none" stroke="rgba(232,179,90,.55)"/>
+      <path d="M150 52 L166 72 L150 92 L134 72 Z" fill="none" stroke="url(#brass)" stroke-width="1.6"/>
+      <circle cx="150" cy="72" r="5" fill="rgba(232,179,90,.75)"/>
+    </g>
+  </g>
+</svg>
+
+    <p class="eyebrow">DeckForge &middot; Battle Mode</p>
+    <h1>Battle Mode</h1>
+    <p class="lede">Your deck, seated across from an opponent, with the XMage rules engine underneath
+    doing the arithmetic: mana, combat, the stack, and every trigger you would rather not track.</p>
+
+    <div class="get">
+      <a class="btn" href="BattleMode-0.30.3.apk">Download <small>0.30.3</small></a>
+      <ul class="orbs">
+        <li class="orb"><b>0.30.3</b><span>version</span></li>
+        <li class="orb"><b>28.5 MB</b><span>size</span></li>
+        <li class="orb"><b>8.0+</b><span>android</span></li>
+      </ul>
+    </div>
+    <div class="seam"></div>
+  </header>
+
+  <h2 class="sec">Latest</h2>
+  <article class="star">
+    <span class="chip">0.30.3</span>
+    <h3>An arena on the draft board</h3>
+    <p>0.30.3 is the draft board wearing a restyle, five rounds of it, over the board rather than in
 place of the table. The playmat runs plum to maroon with dark veins, the midline seam is brighter and
 breathes, and each seat carries its colour on the edge of its cards: yours blue, theirs red, a card you
 can act on lit cyan and lifted in the hand. Lands and artifacts of one name merge into a card with a
@@ -36,30 +261,44 @@ its ash curves into that seat's graveyard.</p>
 permanent that went to a graveyard, so a bounce or an exile is no longer mistaken for a death; and the
 tax badge reads the commander play count the engine itself charges from, after finding that the event
 it had been counted on is never raised in this port.</p>
+  </article>
 
-<h2>0.30.2: one phase pill, corners that hold what they hold, the draft first</h2>
-<p>The phase rail is gone: five segments that shifted the whole bar every time the turn moved
+  <h2 class="sec">Before this</h2>
+  
+    <details class="rel" open>
+      <summary>
+        <span class="chip">0.30.2</span>
+        <span class="rel-title">one phase pill, corners that hold what they hold, the draft first</span>
+      </summary>
+      <div class="rel-body"><p>The phase rail is gone: five segments that shifted the whole bar every time the turn moved
 into the next phase are now one pill of a fixed size whose word changes, with every slot around
 it fixed too.</p>
 <p>The pile corners are measured for everything standing in them - the graveyard and exile chips
 were drawing over the lands lane, and on the draft board the deck came up under the general's
 card. Deck, general and rank now have a place of their own.</p>
 <p>And the draft board is the default, once: a phone that had "table" saved opens on the draft
-and remembers its own choice from then on.</p>
-<p><a href="BattleMode-0.30.3.apk">Download Battle Mode 0.30.3</a></p>
-
-<h2>0.30.1: the board that was working, back</h2>
-<p>0.30.0 came up wrong on the phone - the table with no cards on it, the draft with
+and remembers its own choice from then on.</p></div>
+    </details>
+    <details class="rel" open>
+      <summary>
+        <span class="chip">0.30.1</span>
+        <span class="rel-title">the board that was working, back</span>
+      </summary>
+      <div class="rel-body"><p>0.30.0 came up wrong on the phone - the table with no cards on it, the draft with
 nothing but hands and its information out of place - so all of its board work is reverted:
 the measured sizes, the command zone folded into the back rank, the tap that only opened
 a card, the bar across the top, and the turn-one draw that came with them. What is in this
 package is 0.29.0's board, the one that was seen to work, with the version raised so it
 installs over 0.30.0.</p>
 <p>The pieces worth keeping come back one at a time, each one watchable on the phone before
-the next goes in.</p>
-
-<h2>A board measured to the screen, a tap that only reads</h2>
-<p>0.30.0 is the draft board grown up. Every size on it was written down for one phone - a 72dp
+the next goes in.</p></div>
+    </details>
+    <details class="rel">
+      <summary>
+        <span class="chip">0.30.0</span>
+        <span class="rel-title">A board measured to the screen, a tap that only reads</span>
+      </summary>
+      <div class="rel-body"><p>0.30.0 is the draft board grown up. Every size on it was written down for one phone - a 72dp
 column for the command zone, 40dp libraries, a 64dp card in the hand - so on a short landscape
 window the gutter ate a fifth of the width and on a wide one the board floated in the middle of
 nothing. The hand, the pips, the libraries, the spacing and the lift that plays a card are now
@@ -79,10 +318,14 @@ the name above the table are gone, and the number is the same pip the draft stan
 row.</p>
 <p>And commander draws on turn one. The engine applies the two-player tournament rule, where the
 player who goes first skips the draw step of their first turn, and commander counts as two-player as
-far as it is concerned. A commander table does not play that way, so every seat draws.</p>
-
-<h2>The right opponent, and the bar out of the way</h2>
-<p>0.29.0 is two fixes and one addition. The seat across the table is now built for the format your
+far as it is concerned. A commander table does not play that way, so every seat draws.</p></div>
+    </details>
+    <details class="rel">
+      <summary>
+        <span class="chip">0.29.0</span>
+        <span class="rel-title">The right opponent, and the bar out of the way</span>
+      </summary>
+      <div class="rel-body"><p>0.29.0 is two fixes and one addition. The seat across the table is now built for the format your
 deck declares: hand it a commander deck and it sits down with a hundred-card singleton deck of its
 own, general in the command zone and all; hand it sixty cards and it answers with sixty. Before
 this, one fixed sixty-card deck was seated whatever arrived, so a commander deck played a game of
@@ -93,10 +336,14 @@ height it was spending. Your life total still rides in it, except while the draf
 own orbs at the ends of the row.</p>
 <p>And the draft has a command zone: your general stands at the left of your back rank, breathing
 when the engine says it can be cast, and a tap on it casts it. The opponent's general stands at
-theirs, so a commander game looks like one.</p>
-
-<h2>A second table, behind a switch</h2>
-<p>0.28.0 is a draft of the board that did not come from this app, kept beside the table rather than
+theirs, so a commander game looks like one.</p></div>
+    </details>
+    <details class="rel">
+      <summary>
+        <span class="chip">0.28.0</span>
+        <span class="rel-title">A second table, behind a switch</span>
+      </summary>
+      <div class="rel-body"><p>0.28.0 is a draft of the board that did not come from this app, kept beside the table rather than
 put in its place. One real perspective plane with the cards laid out flat inside it, a purple
 playmat, a glowing midline, two ranks a side, life orbs at the edges and a fanned hand. It is a
 different board and not a restyled one: no lane along the bottom, no card sheet on a long press, no
@@ -110,10 +357,14 @@ while.</p>
 the middle, and a middle hinge draws the board at nine tenths of the height it was given: at forty
 degrees and a far edge at four fifths, a tenth of the table is a band of nothing above it. Hinged at
 the near edge instead, which is also the edge that has to stay on the bottom of the screen, every
-rank fills its slot and the near edge is drawn at the size it was measured.</p>
-
-<h2>The table owns the whole screen</h2>
-<p>0.27.0 is about the space above the cards. The app's own title bar used to stay up over the board
+rank fills its slot and the near edge is drawn at the size it was measured.</p></div>
+    </details>
+    <details class="rel">
+      <summary>
+        <span class="chip">0.27.0</span>
+        <span class="rel-title">The table owns the whole screen</span>
+      </summary>
+      <div class="rel-body"><p>0.27.0 is about the space above the cards. The app's own title bar used to stay up over the board
 while a game was on, and the board's top bar still reserved the status bar's inset even though the
 bars are hidden, which together was a quarter inch of nothing above Log and Leave. The title bar
 belongs to the lobby; it goes as soon as the cards are out, and the top bar now keeps clear of the
@@ -123,10 +374,14 @@ little less than half the screen, because the far half is further away and draws
 split gives them their share of the top. The far edge is drawn at seven eighths rather than four
 fifths and the lean is twenty degrees rather than twenty-two: still a table you are sitting at,
 without their lands and artifacts squeezed into slivers. The band along the bottom takes a quarter of
-the height and the top bar is 36dp, so the two halves are what has the room.</p>
-
-<h2>One table, leaning away from you</h2>
-<p>0.26.0 is about where things are. The board used to be two halves that each leaned about their own
+the height and the top bar is 36dp, so the two halves are what has the room.</p></div>
+    </details>
+    <details class="rel">
+      <summary>
+        <span class="chip">0.26.0</span>
+        <span class="rel-title">One table, leaning away from you</span>
+      </summary>
+      <div class="rel-body"><p>0.26.0 is about where things are. The board used to be two halves that each leaned about their own
 middle, which is two planes rather than one: their half tilted toward you as much as yours tilted
 away, so their board read as if it were lying on your side of the table. It is one plane now,
 leaning away about its near edge. The edge in front of you is drawn at the size it is measured, the
@@ -144,20 +399,28 @@ all of it drawn smaller and higher because it is further off.</p>
 <p>The band along the bottom no longer comes and goes with your hand, because it is not only your hand
 any more: a row with a deck and a graveyard in it stays where it is. The one panel that asks a
 question stands over the near right corner of the table instead of taking a row, and the rank behind
-it keeps clear of it rather than hiding underneath.</p>
-
-<h2>Cards that were never missing</h2>
-<p>0.25.0 fixes a refusal rather than a gap. The pre-game check named cards the engine cannot build,
+it keeps clear of it rather than hiding underneath.</p></div>
+    </details>
+    <details class="rel">
+      <summary>
+        <span class="chip">0.25.0</span>
+        <span class="rel-title">Cards that were never missing</span>
+      </summary>
+      <div class="rel-body"><p>0.25.0 fixes a refusal rather than a gap. The pre-game check named cards the engine cannot build,
 and some of those names were the check's fault. The sets register plenty of cards under the
 plain-letter spelling, while DeckForge sends the name as Scryfall prints it, marks and all, so
 "Hamato Ninpō" did not match "Hamato Ninpo" and a card the engine implements was reported as
 missing. Names are now compared with the accent taken off both sides, so "Lim-Dûl's Vault" and
 "Lim-Dul's Vault" are one card, and so are "Æther Vial" and "Aether Vial".</p>
 <p>The pool itself was already whole and is still current: the sets are XMage's as of November 2026,
-592 of them, 94,263 printings, none of which fail to build.</p>
-
-<h2>Upright to choose, sideways to play</h2>
-<p>0.25.0 puts the phone the right way up for each half of the job. The decklist is a column of
+592 of them, 94,263 printings, none of which fail to build.</p></div>
+    </details>
+    <details class="rel">
+      <summary>
+        <span class="chip chip--none">history</span>
+        <span class="rel-title">Upright to choose, sideways to play</span>
+      </summary>
+      <div class="rel-body"><p>0.25.0 puts the phone the right way up for each half of the job. The decklist is a column of
 cards, so the menu is portrait: the deck's name and its pictures at the top, the whole list down the
 middle, and Play under a thumb. Pressing it turns the phone and hands over to the table, which is
 sideways because two halves and a hand need the long side of the screen. Leaving a game turns it
@@ -170,10 +433,14 @@ waiting on a network.</p>
 A tapped permanent rotates and shrinks into its slot rather than jumping. Life counts to its new
 total and the disc knocks as it changes. A spell slides onto the stack, the phase rail lights the
 phase being played with a wash of brass, and every new turn announces itself. Everything the table
-is asking you to pick breathes, so a legal target can be found on a full board.</p>
-
-<h2>The table</h2>
-<p>The table is the screen Arena taught us to expect. It is landscape, and it is a table: their half
+is asking you to pick breathes, so a legal target can be found on a full board.</p></div>
+    </details>
+    <details class="rel">
+      <summary>
+        <span class="chip chip--none">history</span>
+        <span class="rel-title">The table</span>
+      </summary>
+      <div class="rel-body"><p>The table is the screen Arena taught us to expect. It is landscape, and it is a table: their half
 across from you, yours in front, creatures nearest the middle where combat happens, the decks and
 the graveyards in the corners, and your hand with the cards you can actually play lit and the rest
 left quiet.</p>
@@ -188,10 +455,14 @@ the printed text is the text.</p>
 <p>The dock in the corner only appears when the engine wants something, and it asks in a sentence.
 Questions better answered by touching the table say so and get out of the way. Tapped permanents
 turn a quarter turn, creatures carry their power and toughness, tokens are marked, and the strip
-between the halves is the turn's phases, or the stack when something is on it.</p>
-
-<h2>Before the game</h2>
-<p>A deck used to be dealt the moment it arrived. Now there is a lobby. It checks the deck against
+between the halves is the turn's phases, or the stack when something is on it.</p></div>
+    </details>
+    <details class="rel">
+      <summary>
+        <span class="chip chip--none">history</span>
+        <span class="rel-title">Before the game</span>
+      </summary>
+      <div class="rel-body"><p>A deck used to be dealt the moment it arrived. Now there is a lobby. It checks the deck against
 the cards this phone can build, and while it does it says so: the name of the card it is on, how
 many of how many, and a bar that moves. Anything the engine cannot build is listed by name with a
 reason, instead of the deck quietly arriving with holes in it.</p>
@@ -199,17 +470,25 @@ reason, instead of the deck quietly arriving with holes in it.</p>
 will need. Pressing on asks for those pictures ahead of time: every card at its printing, the
 illustration as well as the whole card, the tokens the deck's own wording implies, and the other
 seat's deck, with progress on screen while it runs. The first game therefore starts with pictures
-already on disk rather than during the first turn.</p>
-
-<h2>One land a turn</h2>
-<p>0.16.0 fixes a bug worth naming. A land drop could be used twice in a turn, which is how a
+already on disk rather than during the first turn.</p></div>
+    </details>
+    <details class="rel">
+      <summary>
+        <span class="chip">0.16.0</span>
+        <span class="rel-title">One land a turn</span>
+      </summary>
+      <div class="rel-body"><p>0.16.0 fixes a bug worth naming. A land drop could be used twice in a turn, which is how a
 Mountain and an Exotic Orchard both appeared on turn one. The seat now asks the engine's own count
 of land drops as well as its own marker, and only plays a land the engine offered it in that main
 phase. A test plays an all-lands deck turn after turn and calls a second land directly, the way the
-phone did.</p>
-
-<h2>The pictures</h2>
-<p>Card art comes from Scryfall, once. Every card in the deck is resolved to its printing and its
+phone did.</p></div>
+    </details>
+    <details class="rel">
+      <summary>
+        <span class="chip chip--none">history</span>
+        <span class="rel-title">The pictures</span>
+      </summary>
+      <div class="rel-body"><p>Card art comes from Scryfall, once. Every card in the deck is resolved to its printing and its
 name, and both the whole card and its illustration are fetched while the game is being dealt, a
 few at a time and spaced out. They are written to a small index on disk with the pictures
 themselves, so the second game with the same deck asks the network for nothing at all.</p>
@@ -217,20 +496,38 @@ themselves, so the second game with the same deck asks the network for nothing a
 creates a 1/1 white Soldier makes "Soldier" into a warm-up request before the token exists. A
 token nobody predicted still gets its picture the moment it appears, and is remembered after
 that.</p>
-<p>Nothing about a game depends on the network. Pictures arrive; the table plays either way.</p>
-
-<h2>What the table already does</h2>
-<p>More than one creature can block the same attacker, and the AI piles on by itself when that is
+<p>Nothing about a game depends on the network. Pictures arrive; the table plays either way.</p></div>
+    </details>
+    <details class="rel">
+      <summary>
+        <span class="chip chip--none">history</span>
+        <span class="rel-title">What the table already does</span>
+      </summary>
+      <div class="rel-body"><p>More than one creature can block the same attacker, and the AI piles on by itself when that is
 the only way to kill something bigger than anything it owns. Instants are cast at instant speed.
 A deck that arrives with a commander is played as a commander game: forty life, the general in
 the command zone, and its tax tracked by the engine.</p>
 
-<p><a href="BattleMode-0.30.1.apk">Download Battle Mode 0.30.1</a></p>
+
 <p>Installing it from a browser means allowing your browser to install unknown apps. DeckForge
 can do the same thing itself, from the deck menu, and checks the download against this page's
 checksum and signing key before handing it to Android.</p>
 <p>Both apps are signed with the same key on purpose: that is how DeckForge knows the app that
 answers <code>com.soharuda.deckforge.battle.action.PLAY</code> is ours and not an impostor.</p>
-<p>SHA-256 of the APK: <code>362da4655db8018c8b59f0f473005158cc4c989676ef4b1c8d9cfdf842b95b55</code></p>
+<p>SHA-256 of the APK: <code>362da4655db8018c8b59f0f473005158cc4c989676ef4b1c8d9cfdf842b95b55</code></p></div>
+    </details>
+
+  <footer>
+    <h2>Installing</h2>
+    <p>From a browser, allow it to install unknown apps when Android asks. DeckForge can do the same
+    job itself from the deck menu, and checks the download against this page's checksum and signing
+    key before handing it to Android.</p>
+    <p>Both apps are signed with the same key on purpose: that is how DeckForge knows the app that
+    answers <code>com.soharuda.deckforge.battle.action.PLAY</code> is ours and not an impostor.</p>
+    <p>SHA-256 of the APK <span class="key">362da4655db8018c8b59f0f473005158cc4c989676ef4b1c8d9cfdf842b95b55</span></p>
+    <div class="seats"><span class="seat me"></span><span class="seat them"></span></div>
+  </footer>
+
+</div>
 </body>
 </html>

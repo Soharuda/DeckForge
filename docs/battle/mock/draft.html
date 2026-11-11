@@ -457,12 +457,11 @@ stage.addEventListener("pointerdown", ev => {
   grip = handle
     ? { mode:"resize", id:e.id, x0:sx, y0:sy, w0:e.w, h0:e.h }
     : { mode:"move",   id:e.id, x0:sx, y0:sy, ex:e.x, ey:e.y };
-  stage.setPointerCapture(ev.pointerId);
   paintStage(); paintList(); paintInspector();
   ev.preventDefault();
 });
 
-stage.addEventListener("pointermove", ev => {
+window.addEventListener("pointermove", ev => {
   if (!grip) return;
   const e = elById(grip.id); if (!e) return;
   const rect = stage.getBoundingClientRect();
@@ -481,7 +480,7 @@ stage.addEventListener("pointermove", ev => {
   if (node) node.style.cssText = `left:${e.x}px;top:${e.y}px;width:${e.w}px;height:${e.h}px;z-index:${e.z}`;
 });
 
-stage.addEventListener("pointerup", ev => {
+window.addEventListener("pointerup", ev => {
   if (grip){ grip = null; commit(); }
 });
 

@@ -340,9 +340,21 @@ function cardEl(name, pt, tapped, h) {
   el.style.height = h.toFixed(1) + 'px';
   const url = CARDS[name];
   if (url) {
-    el.style.background = 'url("' + url + '") center / 100% 100% no-repeat';
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = name;
+    img.draggable = false;
+    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block';
+    // if the CDN is blocked the card still says what it is
+    img.onerror = () => {
+      img.remove();
+      el.textContent = name;
+      el.style.fontSize = Math.max(5, Math.min(8, w * 0.13)) + 'px';
+      el.style.textAlign = 'center';
+      el.style.padding = '1px';
+    };
+    el.appendChild(img);
   } else {
-    el.style.background = 'linear-gradient(160deg,#3a3f38,#22261f)';
     el.textContent = name;
   }
   return el;

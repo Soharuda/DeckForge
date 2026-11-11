@@ -239,8 +239,20 @@ let uid = 1;
 const $ = id => document.getElementById(id);
 const stage = $("stage"), wrap = $("wrap");
 
-function load(){ try { const s = localStorage.getItem("draft-layout"); return s ? JSON.parse(s) : null; } catch(e){ return null; } }
-function save(){ try { localStorage.setItem("draft-layout", JSON.stringify(cfg)); } catch(e){} }
+const LAYOUT_VERSION = 2;   // bump when the starter changes shape, so an old saved draft steps aside
+
+function load(){
+  try {
+    const raw = localStorage.getItem("draft-layout");
+    if (!raw) return null;
+    const held = JSON.parse(raw);
+    if (!held || held.v !== LAYOUT_VERSION || !held.cfg || !Array.isArray(held.cfg.elements)) return null;
+    return held.cfg;
+  } catch(e){ return null; }
+}
+function save(){
+  try { localStorage.setItem("draft-layout", JSON.stringify({ v: LAYOUT_VERSION, cfg })); } catch(e){}
+}
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function elById(id){ return cfg.elements.find(e => e.id === id); }
 function nextId(kind){ const base = kind + "-" + (uid++); return cfg.elements.some(e => e.id === base) ? nextId(kind) : base; }

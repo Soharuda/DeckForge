@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Draft Mode — screen editor</title>
+<title>Battle Mode — draft board editor</title>
 <style>
   :root{
+    --mat-a:#2b2040; --mat-b:#1a1228; --glow:#e0301e; --gold:#e8b35a; --violet:#5b3b7a;
     --page:#0f2419; --panel:#173327; --ink:#f0ead8; --muted:#9db4a6; --metal:#d8c48a;
     --ground:#13221b; --line:rgba(216,196,138,.22); --sel:#e6d37a;
   }
@@ -80,7 +81,7 @@
 </head>
 <body>
 <header>
-  <h1>Draft Mode — screen editor</h1>
+  <h1>Battle Mode — draft board editor</h1>
   <div class="sub">Drag anything. Pull the corner to resize. Add and remove what you like. Then
     hit Export and paste me the JSON.</div>
 </header>
@@ -195,41 +196,32 @@ const CARDS = {
 /* The starter screen: a pack on the left, the picks you have taken on the right, the pool along
    the bottom, and the clock. Everything here is furniture, not a specification. */
 const STARTER = {
-  kind: "deckforge.battle.draft", version: 1,
   screen: { w: 914, h: 411 },
+  // the app's own camera, carried along so the export says which board this was drawn for
+  camera: { tiltDegrees: 20, farScale: 0.85 },
   elements: [
-    { id:"title",  kind:"label",  text:"Draft — Pack 1, Pick 3", x:14, y:10, w:260, h:16, z:6, size:11, align:"start", tone:"ink" },
-    { id:"packno", kind:"label",  text:"15 cards in the pack",   x:14, y:27, w:260, h:14, z:6, size:9,  align:"start", tone:"muted" },
-    { id:"clock",  kind:"pill",   text:"1:42", x:790, y:9, w:70, h:20, z:7, size:12, align:"center", tone:"metal" },
-    { id:"left",   kind:"pill",   text:"8 picks left", x:700, y:9, w:84, h:20, z:7, size:10, align:"center", tone:"metal" },
+    { id:"farback",  kind:"rank",  label:"THEIR LANDS · A&E", x:84,  y:0,      w:764, h:65.8,  z:1, count:4, cols:4, size:7 },
+    { id:"farfront", kind:"rank",  label:"THEIR CREATURES",   x:12,  y:65.8,   w:890, h:131.5, z:1, count:3, cols:3, size:7 },
+    { id:"nearfront",kind:"rank",  label:"YOUR CREATURES",    x:12,  y:197.3,  w:890, h:131.5, z:1, count:4, cols:4, size:7 },
+    { id:"nearback", kind:"rank",  label:"YOUR LANDS · A&E",  x:82,  y:328.8,  w:820, h:82.2,  z:1, count:5, cols:5, size:7 },
+    { id:"midline",  kind:"divider",             x:0,   y:176.7, w:914, h:57.5, z:0, glow:true },
 
-    { id:"packpanel", kind:"panel", text:"Pack", x:14, y:48, w:474, h:250, z:1, size:9, align:"start", tone:"muted" },
-    { id:"pack",   kind:"cardrow", text:"", x:18, y:62, w:466, h:232, z:2, size:9, align:"center", tone:"muted", count:15, cols:5,
-      cards:["Llanowar Elves","Grizzly Bears","Arbor Elf","Vampire Nighthawk","Bloodghast","Sol Ring","Cultivate","Rancor","Harmonize",
-             "Overrun","Eternal Witness","Beast Within","Forest","Swamp","Island"] },
+    { id:"farcmd",   kind:"card",  name:"Overgrown Tomb",   x:2,    y:6.6,   w:37.6, h:52.6, z:3 },
+    { id:"farcmdlbl",kind:"label", text:"Command",          x:0,    y:59.2,  w:42,   h:8,    z:3, size:7, align:"center", tone:"muted" },
+    { id:"theirdeck",kind:"pile",  count:34,                x:864,  y:10,    w:40,   h:56,   z:2 },
 
-    { id:"pickpanel", kind:"panel", text:"Your picks", x:500, y:48, w:400, h:150, z:1, size:9, align:"start", tone:"muted" },
-    { id:"picks",  kind:"cardrow", text:"", x:504, y:62, w:392, h:132, z:2, size:9, align:"center", tone:"muted", count:3, cols:3,
-      cards:["Forest","Beast Within","Eternal Witness"] },
+    { id:"cmd",      kind:"card",  name:"Eternal Witness",  x:8.4,  y:197.4, w:47.3, h:66.2, z:3 },
+    { id:"cmdlabel", kind:"label", text:"Cast",             x:0,    y:263.6, w:64,   h:9,    z:3, size:7, align:"center", tone:"metal" },
+    { id:"graveyard",kind:"card",  name:"Beast Within",     x:8.4,  y:275.6, w:47.3, h:66.2, z:3 },
+    { id:"deck",     kind:"pile",  count:29,                x:8.4,  y:344.8, w:47.3, h:66.2, z:3 },
 
-    { id:"poolpanel", kind:"panel", text:"Pool", x:500, y:206, w:400, h:92, z:1, size:9, align:"start", tone:"muted" },
-    { id:"pool",   kind:"cardrow", text:"", x:504, y:220, w:392, h:74, z:2, size:9, align:"center", tone:"muted", count:6, cols:6,
-      cards:["Forest","Island","Swamp","Command Tower","Overgrown Tomb","Barren Moor"] },
-
-    { id:"pickbtn", kind:"button", text:"Pick", x:14, y:306, w:120, h:34, z:8, size:12, align:"center", tone:"ink" },
-    { id:"donebtn", kind:"button", text:"Done drafting", x:144, y:306, w:150, h:34, z:8, size:12, align:"center", tone:"ink" },
-    { id:"hint",   kind:"label",  text:"Tap a card to pick it, press and hold to read it", x:14, y:352, w:520, h:16, z:6, size:9, align:"start", tone:"muted" },
-    { id:"life",   kind:"pill",   text:"Deck 40", x:790, y:306, w:110, h:22, z:7, size:10, align:"center", tone:"metal" },
-    { id:"mid",    kind:"divider", text:"", x:492, y:52, w:2, h:246, z:3, size:9, align:"center", tone:"muted" }
+    { id:"theirorb", kind:"orb",   text:"16", x:429, y:6,   w:56, h:56, z:6 },
+    { id:"myorb",    kind:"orb",   text:"12", x:425, y:337, w:64, h:64, z:6 },
+    { id:"hand",     kind:"cardrow", x:548.4, y:321.4, w:365.6, h:89.6, z:6, count:5, cols:5 },
   ]
 };
 
-window.onerror = (m, src, line, col) => {
-  const n = document.getElementById("note");
-  if (n) n.textContent = "error: " + m + " @ " + line + ":" + col;
-};
-
-const KINDS = ["label","pill","button","panel","card","cardrow","divider"];
+const KINDS = ["rank","card","cardrow","pile","orb","label","pill","button","panel","divider"];
 const SAMPLE = Object.keys(CARDS);
 
 let cfg = load() || JSON.parse(JSON.stringify(STARTER));
@@ -239,7 +231,7 @@ let uid = 1;
 const $ = id => document.getElementById(id);
 const stage = $("stage"), wrap = $("wrap");
 
-const LAYOUT_VERSION = 2;   // bump when the starter changes shape, so an old saved draft steps aside
+const LAYOUT_VERSION = 3;   // bump when the starter changes shape, so an old saved draft steps aside
 
 function load(){
   try {
@@ -304,6 +296,25 @@ function elNode(e){
     n.textContent = e.text || "";
   } else if (e.kind === "divider"){
     n.classList.add("divider");
+    if (e.glow) n.classList.add("glow");
+  } else if (e.kind === "rank"){
+    n.classList.add("band");
+    const cap = document.createElement("span");
+    cap.className = "cap";
+    cap.textContent = e.label || "";
+    n.appendChild(cap);
+    n.appendChild(rowNode(e));
+  } else if (e.kind === "pile"){
+    n.classList.add("pile");
+    const b = document.createElement("b");
+    b.textContent = e.count == null ? "0" : e.count;
+    n.appendChild(b);
+  } else if (e.kind === "orb"){
+    n.classList.add("orb");
+    const b = document.createElement("b");
+    b.textContent = e.text || "0";
+    b.style.fontSize = Math.max(8, e.w * 0.3) + "px";
+    n.appendChild(b);
   } else if (e.kind === "card"){
     n.appendChild(cardNode(e.name || SAMPLE[0], e.w, e.h, false));
   } else if (e.kind === "cardrow"){
@@ -419,16 +430,19 @@ function paintInspector(){
   $("eSize").value = e.size || 10;
   $("eAlign").value = e.align || "start";
   $("eTone").value = e.tone || "ink";
-  const hasText = ["label","pill","button","panel"].includes(e.kind);
+  const hasText = ["label","pill","button","panel","orb","rank"].includes(e.kind);
   $("eTextRow").style.display = hasText ? "" : "none";
   $("eCardRow").style.display = e.kind === "card" ? "" : "none";
   const picker = $("eCard");
   if (e.kind === "card"){
     picker.innerHTML = SAMPLE.map(n => `<option${n === e.name ? " selected" : ""}>${n}</option>`).join("");
   }
-  $("eCountWrap").style.display = e.kind === "cardrow" ? "" : "none";
-  $("eColsWrap").style.display = e.kind === "cardrow" ? "" : "none";
+  const many = ["cardrow","rank","pile"].includes(e.kind);
+  $("eCountWrap").style.display = many ? "" : "none";
+  $("eColsWrap").style.display = many ? "" : "none";
+  $("eCount").value = e.count == null ? 0 : e.count;
   $("eCols").value = e.cols || 1;
+  $("eText").value = e.kind === "rank" ? (e.label || "") : (e.text || "");
 }
 
 function numberField(id, key){
@@ -565,7 +579,7 @@ KINDS.forEach(kind => {
   $("palette").appendChild(b);
 });
 
-const labels = { label:"Label", pill:"0", button:"Button", panel:"Panel", card:"", cardrow:"", divider:"" };
+const labels = { rank:"Rank", card:"", cardrow:"", pile:"0", orb:"0", label:"Label", pill:"0", button:"Button", panel:"Panel", divider:"" };
 
 $("sw").addEventListener("change", ev => { cfg.screen.w = Math.max(200, parseFloat(ev.target.value) || 914); commit(); });
 $("sh").addEventListener("change", ev => { cfg.screen.h = Math.max(200, parseFloat(ev.target.value) || 411); commit(); });

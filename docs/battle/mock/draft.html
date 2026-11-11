@@ -133,6 +133,7 @@
         </div>
         <div class="grid" style="margin-top:6px">
           <label class="f" id="eCountWrap">cards<input id="eCount" type="number" min="1" max="15" step="1"></label>
+          <label class="f" id="eColsWrap">columns<input id="eCols" type="number" min="1" max="8" step="1"></label>
           <label class="f">font<input id="eSize" type="number" min="5" max="40" step="1"></label>
         </div>
         <div class="grid" style="margin-top:6px">
@@ -203,15 +204,16 @@ const STARTER = {
     { id:"left",   kind:"pill",   text:"8 picks left", x:700, y:9, w:84, h:20, z:7, size:10, align:"center", tone:"metal" },
 
     { id:"packpanel", kind:"panel", text:"Pack", x:14, y:48, w:474, h:250, z:1, size:9, align:"start", tone:"muted" },
-    { id:"pack",   kind:"cardrow", text:"", x:18, y:62, w:466, h:232, z:2, size:9, align:"center", tone:"muted", count:9,
-      cards:["Llanowar Elves","Grizzly Bears","Arbor Elf","Vampire Nighthawk","Bloodghast","Sol Ring","Cultivate","Rancor","Harmonize"] },
+    { id:"pack",   kind:"cardrow", text:"", x:18, y:62, w:466, h:232, z:2, size:9, align:"center", tone:"muted", count:15, cols:5,
+      cards:["Llanowar Elves","Grizzly Bears","Arbor Elf","Vampire Nighthawk","Bloodghast","Sol Ring","Cultivate","Rancor","Harmonize",
+             "Overrun","Eternal Witness","Beast Within","Forest","Swamp","Island"] },
 
     { id:"pickpanel", kind:"panel", text:"Your picks", x:500, y:48, w:400, h:150, z:1, size:9, align:"start", tone:"muted" },
-    { id:"picks",  kind:"cardrow", text:"", x:504, y:62, w:392, h:132, z:2, size:9, align:"center", tone:"muted", count:3,
+    { id:"picks",  kind:"cardrow", text:"", x:504, y:62, w:392, h:132, z:2, size:9, align:"center", tone:"muted", count:3, cols:3,
       cards:["Forest","Beast Within","Eternal Witness"] },
 
     { id:"poolpanel", kind:"panel", text:"Pool", x:500, y:206, w:400, h:92, z:1, size:9, align:"start", tone:"muted" },
-    { id:"pool",   kind:"cardrow", text:"", x:504, y:220, w:392, h:74, z:2, size:9, align:"center", tone:"muted", count:6,
+    { id:"pool",   kind:"cardrow", text:"", x:504, y:220, w:392, h:74, z:2, size:9, align:"center", tone:"muted", count:6, cols:6,
       cards:["Forest","Island","Swamp","Command Tower","Overgrown Tomb","Barren Moor"] },
 
     { id:"pickbtn", kind:"button", text:"Pick", x:14, y:306, w:120, h:34, z:8, size:12, align:"center", tone:"ink" },
@@ -329,6 +331,20 @@ function rowNode(e){
   row.className = "row";
   const names = (e.cards && e.cards.length ? e.cards : SAMPLE);
   const n = Math.max(1, e.count || names.length);
+  if (e.cols > 1){
+    const grid = document.createElement("div");
+    grid.style.cssText = "position:absolute;inset:0;display:grid;gap:2px;align-content:start;" +
+      "grid-template-columns:repeat(" + e.cols + ",minmax(0,1fr))";
+    const rows = Math.ceil(n / e.cols);
+    const cellH = Math.max(10, (e.h - (rows - 1) * 2) / rows);
+    for (let i = 0; i < n; i++){
+      const cell = document.createElement("div");
+      cell.style.cssText = "position:relative;height:" + cellH + "px";
+      cell.appendChild(cardNode(names[i % names.length], 0, cellH, false));
+      grid.appendChild(cell);
+    }
+    return grid;
+  }
   const gap = 2;
   const byHeight = e.h;
   const cardW = byHeight * 63 / 88;
@@ -399,6 +415,8 @@ function paintInspector(){
     picker.innerHTML = SAMPLE.map(n => `<option${n === e.name ? " selected" : ""}>${n}</option>`).join("");
   }
   $("eCountWrap").style.display = e.kind === "cardrow" ? "" : "none";
+  $("eColsWrap").style.display = e.kind === "cardrow" ? "" : "none";
+  $("eCols").value = e.cols || 1;
 }
 
 function numberField(id, key){
@@ -411,6 +429,7 @@ function numberField(id, key){
 ["eX","eY","eW","eH"].forEach((id,i) => numberField(id, ["x","y","w","h"][i]));
 numberField("eSize", "size");
 numberField("eCount", "count");
+numberField("eCols", "cols");
 
 $("eName").addEventListener("input", ev => {
   const e = sel ? elById(sel) : null; if (!e) return;

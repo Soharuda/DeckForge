@@ -226,9 +226,9 @@
     doing the arithmetic: mana, combat, the stack, and every trigger you would rather not track.</p>
 
     <div class="get">
-      <a class="btn" href="BattleMode-0.31.8.apk">Download <small>0.31.8</small></a>
+      <a class="btn" href="BattleMode-0.32.0.apk">Download <small>0.32.0</small></a>
       <ul class="orbs">
-        <li class="orb"><b>0.31.8</b><span>version</span></li>
+        <li class="orb"><b>0.32.0</b><span>version</span></li>
         <li class="orb"><b>28.5 MB</b><span>size</span></li>
         <li class="orb"><b>8.0+</b><span>android</span></li>
       </ul>
@@ -238,7 +238,28 @@
 
   <h2 class="sec">Latest</h2>
   <article class="star">
-    <span class="chip">0.31.8</span>
+    <span class="chip">0.32.0</span>
+    <h3>A drag reads the whole table, and a refusal explains itself</h3>
+    <p>A drag was answered from a picture of the table taken a moment before the engine had finished
+    changing it. The lists a play is judged against - hand, lands, the offer of what can be cast -
+    are being rewritten by the engine's own thread while they are read, and a read that lands in the
+    middle of that would come back refused, or empty, and the card went back to the hand with a
+    reason that was not true.</p>
+    <p>The table is now read once and answered from that one picture: the cheap reads are retried,
+    and if the full read still fails the last whole picture is used for the frame rather than
+    nothing at all. A refusal names the turn it judged, the drop carries the whole table into the
+    decision, and a land is decided by the engine's land count instead of a stale offer.</p>
+    <p>Two tools for the same class of bug: a refusal that cannot be reproduced is now written down
+    in the log the app already keeps, and a drag has its own test that judges the four cases -
+    your turn, the AI's turn, a land already played, and a table that could not be read.</p>
+  </article>
+
+  <h2 class="sec">Before this</h2>
+    <details class="rel">
+      <summary>
+        <span class="chip">0.31.8</span>
+        <span class="rel-title">A land goes down while the table is asking</span>
+      </summary>
     <h3>A land goes down while the table is asking</h3>
     <p>A land dragged out of the hand was answered "Wait for your turn" on the player's own turn.
     The drag judged the turn by one flag, while the table had already asked that seat what it would
@@ -247,9 +268,8 @@
     in the reason a card cannot be played, and in the turn the strip and the orb show.</p>
     <p>The rules are untouched: one land a turn, and a spell still needs its mana. What changed is
     only which of two answers about whose turn it is is believed.</p>
-  </article>
+    </details>
 
-  <h2 class="sec">Before this</h2>
     <details class="rel">
       <summary>
         <span class="chip">0.31.7</span>

@@ -1,8 +1,7 @@
 {
-  "versionName": "0.31.8",
-  "versionCode": 44,
-  "apk": "https://soharuda.github.io/DeckForge/battle/BattleMode-0.31.8.apk",
-  "url": "https://soharuda.github.io/DeckForge/battle/BattleMode-0.31.8.apk",
-  "sha256": "5fa3cea0da0cb354d9912c69832a246180ab826b91a53b511573fb1c25c786b5",
+  "versionName": "0.32.0",
+  "versionCode": 46,
+  "apk": "https://soharuda.github.io/DeckForge/battle/BattleMode-0.32.0.apk",
+  "sha256": "5202e04c53d48e28ec4f938fd9426e2a95d4af112e3430f10ba352f64eec42bc",
   "size": 29893635
 }

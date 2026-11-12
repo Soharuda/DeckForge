@@ -238,17 +238,19 @@
 
   <h2 class="sec">Latest</h2>
   <article class="star">
-    <span class="chip">0.34.0</span>
-    <h3>A chosen attacker turns amber, a step can be skipped, and the deck is back in its corner</h3>
-    <p>The combat glow was one colour for two different things. A creature the engine lists as able
-    to attack breathes blue, and one you have already picked for the attack now breathes amber, so the
-    board says what is still only possible and what has been decided. The same amber marks a chosen
-    blocker. A permanent the engine is not offering for this combat is not lit at all.</p>
-    <p>A Skip step button sits beside End turn: it sends the neutral answer to whatever the table is
-    asking - pass on priority, no attack, no blocks - and the engine advances the phase. It is absent
-    for questions with no neutral answer, because a target has to be chosen.</p>
-    <p>Your deck is back in the bottom-left corner where it was, and the life total has moved to the
-    right of it instead of on top of the lands.</p>
+    <span class="chip">0.35.0</span>
+    <h3>Tap abilities work: a fetchland taps, searches your library, and puts the land onto the battlefield</h3>
+    <p>Nothing ever activated a card for you. The engine can do it - <code>PlayerImpl.activateAbility</code> pays
+    the cost, asks for targets and resolves the effect - but the engine only ever asks questions, and "what
+    will you tap?" is not one of them. So a permanent's text was readable and inert: a fetchland looked at
+    you, Sol Ring could not be tapped ahead of time, no equipment, no cycling.</p>
+    <p>Now the engine's own list of what a permanent can do travels to the board with the card. Tap a
+    permanent that has an activation and the dock offers them in the card's words; picking one activates it
+    through the engine, which pays the cost, asks the search or target question the way it asks a spell's,
+    and resolves. The activation list is the engine's: <code>getActivatedAbilities</code> filtered by
+    <code>canActivate</code>, with mana abilities deliberately left out until there is a pool to show.</p>
+    <p>Proof is a test that plays a real game with a fetchland: it taps on turn one, answers the search, and a
+    land arrives on the battlefield tapped.</p>
   </article>
 
   
@@ -257,7 +259,25 @@
 
   
 
+  
+
   <h2 class="sec">Before this</h2>
+    <details class="rel">
+      <summary>
+        <span class="chip">0.34.0</span>
+        <span class="rel-title">A chosen attacker turns amber, a step can be skipped, and the deck is back in its corner</span>
+      </summary>
+<p>The combat glow was one colour for two different things. A creature the engine lists as able
+    to attack breathes blue, and one you have already picked for the attack now breathes amber, so the
+    board says what is still only possible and what has been decided. The same amber marks a chosen
+    blocker. A permanent the engine is not offering for this combat is not lit at all.</p>
+    <p>A Skip step button sits beside End turn: it sends the neutral answer to whatever the table is
+    asking - pass on priority, no attack, no blocks - and the engine advances the phase. It is absent
+    for questions with no neutral answer, because a target has to be chosen.</p>
+    <p>Your deck is back in the bottom-left corner where it was, and the life total has moved to the
+    right of it instead of on top of the lands.</p>
+    </details>
+
     <details class="rel">
       <summary>
         <span class="chip">0.33.0</span>

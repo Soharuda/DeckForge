@@ -7,6 +7,7 @@
 <meta name="description" content="Battle Mode plays a DeckForge deck against an opponent, with the XMage rules engine underneath.">
 <meta name="theme-color" content="#1a1228">
 <style>
+
   *, *::before, *::after { box-sizing: border-box; }
   :root {
     color-scheme: dark;
@@ -186,572 +187,195 @@
     .fan { display: none; }
     .orbs { width: 100%; }
   }
+
+  /* A features page: the release history is gone, which leaves room for what the thing does. */
+  .feats { display: grid; gap: .7rem; grid-template-columns: 1fr; margin: 1.1rem 0 0; }
+  @media (min-width: 40rem) { .feats { grid-template-columns: 1fr 1fr; } }
+  .feat {
+    padding: .95rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--panel-2);
+  }
+  .feat h4 {
+    margin: 0 0 .35rem;
+    font: 600 .95rem/1.3 var(--sans);
+    letter-spacing: .01em;
+    color: var(--parch);
+  }
+  .feat p { margin: 0; font-size: .82rem; line-height: 1.55; color: var(--muted); }
+  .feat.wide { grid-column: 1 / -1; }
+  .feat b { color: var(--parch); font-weight: 600; }
+  .note-line { margin: .9rem 0 0; font-size: .78rem; color: var(--muted); }
+  .note-line code { font-family: var(--mono); font-size: .74rem; color: var(--brass); }
+  .btn[aria-disabled="true"] { opacity: .55; pointer-events: none; }
+  .err { color: var(--them); font-size: .78rem; margin: .5rem 0 0; }
+
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <header class="hero">
-    
-<svg class="fan" viewBox="0 0 300 190" aria-hidden="true" focusable="false">
-  <defs>
-    <linearGradient id="back" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#3b2c56"/><stop offset="1" stop-color="#1c1330"/>
-    </linearGradient>
-    <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f0c778"/><stop offset="1" stop-color="#a9772b"/>
-    </linearGradient>
-  </defs>
-  <g>
-    <g transform="rotate(-16 150 170)">
-      <rect x="46" y="22" width="88" height="124" rx="7" fill="url(#back)" stroke="url(#brass)" stroke-width="1.6"/>
-      <rect x="54" y="30" width="72" height="108" rx="4" fill="none" stroke="rgba(232,179,90,.45)"/>
-    </g>
-    <g transform="rotate(16 150 170)">
-      <rect x="166" y="22" width="88" height="124" rx="7" fill="url(#back)" stroke="url(#brass)" stroke-width="1.6"/>
-      <rect x="174" y="30" width="72" height="108" rx="4" fill="none" stroke="rgba(232,179,90,.45)"/>
-    </g>
-    <g>
-      <rect x="106" y="10" width="88" height="124" rx="7" fill="url(#back)" stroke="url(#brass)" stroke-width="2"/>
-      <rect x="114" y="18" width="72" height="108" rx="4" fill="none" stroke="rgba(232,179,90,.55)"/>
-      <path d="M150 52 L166 72 L150 92 L134 72 Z" fill="none" stroke="url(#brass)" stroke-width="1.6"/>
-      <circle cx="150" cy="72" r="5" fill="rgba(232,179,90,.75)"/>
-    </g>
-  </g>
-</svg>
-
-    <p class="eyebrow">DeckForge &middot; Battle Mode</p>
-    <h1>Battle Mode</h1>
-    <p class="lede">Your deck, seated across from an opponent, with the XMage rules engine underneath
-    doing the arithmetic: mana, combat, the stack, and every trigger you would rather not track.</p>
-
-    <div class="get">
-      <a class="btn" href="BattleMode-0.33.0.apk">Download <small>0.33.0</small></a>
-      <ul class="orbs">
-        <li class="orb"><b>0.33.0</b><span>version</span></li>
-        <li class="orb"><b>28.5 MB</b><span>size</span></li>
-        <li class="orb"><b>8.0+</b><span>android</span></li>
-      </ul>
-    </div>
+    <svg class="fan" viewBox="0 0 200 128" aria-hidden="true">
+      <g fill="none" stroke="#e8b35a" stroke-width="1.6" opacity=".85">
+        <rect x="8" y="26" width="70" height="98" rx="7" transform="rotate(-14 43 75)" fill="#241a36"/>
+        <rect x="52" y="18" width="70" height="98" rx="7" transform="rotate(-4 87 67)" fill="#2b2040"/>
+        <rect x="96" y="14" width="70" height="98" rx="7" transform="rotate(8 131 63)" fill="#241a36"/>
+      </g>
+      <g fill="#e8b35a" opacity=".55">
+        <circle cx="87" cy="46" r="7"/>
+        <circle cx="131" cy="42" r="7"/>
+      </g>
+    </svg>
+    <p class="eyebrow">DeckForge · Battle Mode</p>
+    <h1>Battle&nbsp;Mode</h1>
     <div class="seam"></div>
+    <p class="lede">Play the deck you actually own against an opponent that plays by the rules.
+      The XMage engine sits underneath: a real stack, real priority, real combat.</p>
+
+    <p class="get">
+      <a class="btn" id="download" href="latest.json" aria-disabled="true">Download <small id="ver">…</small></a>
+    </p>
+    <ul class="orbs">
+      <li class="orb"><b id="orb-ver">…</b><span>version</span></li>
+      <li class="orb"><b id="orb-size">…</b><span>download</span></li>
+      <li class="orb"><b>8.0+</b><span>Android</span></li>
+    </ul>
+    <p class="note-line">The version, size and checksum on this page are read from
+      <code>latest.json</code>, the same file the DeckForge app installs from, so they cannot drift apart.</p>
+    <p class="err" id="err" hidden></p>
   </header>
 
-  <h2 class="sec">Latest</h2>
-  <article class="star">
-    <span class="chip">0.35.0</span>
-    <h3>Tap abilities work: a fetchland taps, searches your library, and puts the land onto the battlefield</h3>
-    <p>Nothing ever activated a card for you. The engine can do it - <code>PlayerImpl.activateAbility</code> pays
-    the cost, asks for targets and resolves the effect - but the engine only ever asks questions, and "what
-    will you tap?" is not one of them. So a permanent's text was readable and inert: a fetchland looked at
-    you, Sol Ring could not be tapped ahead of time, no equipment, no cycling.</p>
-    <p>Now the engine's own list of what a permanent can do travels to the board with the card. Tap a
-    permanent that has an activation and the dock offers them in the card's words; picking one activates it
-    through the engine, which pays the cost, asks the search or target question the way it asks a spell's,
-    and resolves. The activation list is the engine's: <code>getActivatedAbilities</code> filtered by
-    <code>canActivate</code>, with mana abilities deliberately left out until there is a pool to show.</p>
-    <p>Proof is a test that plays a real game with a fetchland: it taps on turn one, answers the search, and a
-    land arrives on the battlefield tapped.</p>
-  </article>
-
-  
-
-  
-
-  
-
-  
-
-  <h2 class="sec">Before this</h2>
-    <details class="rel">
-      <summary>
-        <span class="chip">0.34.0</span>
-        <span class="rel-title">A chosen attacker turns amber, a step can be skipped, and the deck is back in its corner</span>
-      </summary>
-<p>The combat glow was one colour for two different things. A creature the engine lists as able
-    to attack breathes blue, and one you have already picked for the attack now breathes amber, so the
-    board says what is still only possible and what has been decided. The same amber marks a chosen
-    blocker. A permanent the engine is not offering for this combat is not lit at all.</p>
-    <p>A Skip step button sits beside End turn: it sends the neutral answer to whatever the table is
-    asking - pass on priority, no attack, no blocks - and the engine advances the phase. It is absent
-    for questions with no neutral answer, because a target has to be chosen.</p>
-    <p>Your deck is back in the bottom-left corner where it was, and the life total has moved to the
-    right of it instead of on top of the lands.</p>
-    </details>
-
-    <details class="rel">
-      <summary>
-        <span class="chip">0.33.0</span>
-        <span class="rel-title">The engine decides, the screen only reports</span>
-      </summary>
-<p>Trevor's rule, and the right one: legality, permission and detail are the engine's to answer, and
-    the screen's job is to ask and then show what came back. The drag was still answering for the
-    engine in three places.</p>
-    <p>A card the engine had not listed was refused with "Not enough mana for that yet" - a claim the
-    client cannot support, and the one that refused his Sol Ring with a Forest already in play. It now
-    says only what it knows ("The table is not asking for a play yet") and, while the table is asking,
-    it tries the play and lets the engine answer. A cast the rules will not take comes back in the
-    engine's own words in the dock ("The table will not take Sol Ring yet"); a cast they will take
-    simply works.</p>
-    <p>His life total has moved to the bottom-left beside his deck, with the corner column shifted up
-    to make room. A test now plays a Forest and asks the engine whether a one-drop is castable, so the
-    next version of this bug fails the build instead of the game.</p>
-    </details>
-
-    <details class="rel">
-      <summary>
-        <span class="chip">0.32.1</span>
-        <span class="rel-title">A drop judges by the table in front of you, and a refusal says what it judged by</span>
-      </summary>
-<p>A drag was still refused on a turn the strip called yours. Every part of the screen draws from
-    one table, so a table that is asking you to play cannot be refused by that same table's rules:
-    the drop was judging by an older picture, one kept by a gesture made a moment before.</p>
-    <p>The drop now reads the newest table at the moment the card is let go rather than the one that
-    existed when the gesture began.</p>
-    <p>A refusal also carries what it decided from, in brackets: the turn flag it read, whether the
-    engine was asking you to play at that moment, how old the table was in milliseconds, whether the
-    function that judged held an older table, and any read failure. If it still refuses while the
-    strip says your turn, that bracket is the evidence.</p>
-    </details>
-
-    <details class="rel">
-      <summary>
-        <span class="chip">0.32.0</span>
-        <span class="rel-title">A drag reads the whole table, and a refusal explains itself</span>
-      </summary>
-<p>A drag was answered from a picture of the table taken a moment before the engine had finished
-    changing it. The lists a play is judged against - hand, lands, the offer of what can be cast -
-    are being rewritten by the engine's own thread while they are read, and a read that lands in the
-    middle of that would come back refused, or empty, and the card went back to the hand with a
-    reason that was not true.</p>
-    <p>The table is now read once and answered from that one picture: the cheap reads are retried,
-    and if the full read still fails the last whole picture is used for the frame rather than
-    nothing at all. A refusal names the turn it judged, the drop carries the whole table into the
-    decision, and a land is decided by the engine's land count instead of a stale offer.</p>
-    <p>Two tools for the same class of bug: a refusal that cannot be reproduced is now written down
-    in the log the app already keeps, and a drag has its own test that judges the four cases -
-    your turn, the AI's turn, a land already played, and a table that could not be read.</p>
-    </details>
-
-    <details class="rel">
-      <summary>
-        <span class="chip">0.31.8</span>
-        <span class="rel-title">A land goes down while the table is asking</span>
-      </summary>
-    <h3>A land goes down while the table is asking</h3>
-    <p>A land dragged out of the hand was answered "Wait for your turn" on the player's own turn.
-    The drag judged the turn by one flag, while the table had already asked that seat what it would
-    like to play, and that question is the engine's own word that the turn belongs to it: it is only
-    ever raised in the active player's main phase. The question now wins over the flag, in the drag,
-    in the reason a card cannot be played, and in the turn the strip and the orb show.</p>
-    <p>The rules are untouched: one land a turn, and a spell still needs its mana. What changed is
-    only which of two answers about whose turn it is is believed.</p>
-    </details>
-
-    <details class="rel">
-      <summary>
-        <span class="chip">0.31.7</span>
-        <span class="rel-title">The turn has a light of its own</span>
-      </summary>
-      <div class="rel-body"><p>The dark box under the table is gone. A question now stands on the felt itself: the words carry a
-    shadow, and the answers are pills in the theme's metal. Cast and Play land went with the picked card,
-    because playing is a drag out of the hand. The play step offers one Done, the attack step offers Attack
-    and No attack, and targets, modes and X stay chips.</p><p>A tap on a card in hand opens it and does nothing else. It used to also pick the card up for a dock
-    button, which made reading a card into a half-decision.</p><p>Whose turn it is has a light of its own: a small orb circles the life orb of whoever holds the turn,
-    trailing a comet tail. When the turn passes it lifts off, bows across the table and settles into orbit
-    around the other orb, and the seat waiting its turn dims a little, so the eye goes to the light.</p><p>In the mulligan a tap reads a card, and putting cards on the bottom moved to a small toggle under each
-    card, which is why the cards are a touch smaller in that step.</p></div>
-    </details>
-
-    <details class="rel">
-      <summary>
-        <span class="chip">0.31.6</span>
-        <span class="rel-title">The instruction line is gone</span>
-      </summary>
-      <div class="rel-body"><p>The line under the dock that told you what to do at every step — "Your turn", "Drag a card onto your half", the phase's own instruction — is deleted, not hidden behind a switch. It was always drawn, which is why the Hints setting in Settings never appeared to do anything: it only ever gated one small tip about lifting a card out of your hand.</p><p>The dock now speaks only when something is refused, because a card that comes back with no word reads as a bug rather than a hint. With the line gone the Hints switch had nothing left to control, so it is gone too rather than sitting there doing nothing. Whose turn it is, and which phase the game is in, already sit in the phase strip along the top bar.</p></div>
-    </details>
-
-    <details class="rel">
-      <summary>
-        <span class="chip">0.31.5</span>
-        <span class="rel-title">The theme comes with the deck</span>
-      </summary>
-      <div class="rel-body"><p>The board was drawn for one theme and kept that look under every identity: a plum mat, a red seam, brass, and a deck preview in the same fixed colours beside it. DeckForge has been sending its five colours with the deck all along, and this app only used them for panels and the dock, so a Dimir table opened plum and a Boros one opened the same plum.</p>
-    <p>The chrome now comes from those colours. The felt is the app's page shaded down (dark for a dark identity, deeply shaded for a parchment one, because card names here are printed light), the veins are the metal let into the cloth, the seam between the seats is the metal and breathes in its colour, the life orbs are ringed in the seat colour and the metal, and every chip, rule and gold label reads the metal. The deck preview does the same, so the screen before a game and the game are one place. The seat colours stay blue and red on purpose: those are what the board means, not what it wears.</p>
-    <p>And the line under the dock that says what to do next is a setting, off by default, in a new Settings button at the end of the top bar. It only silences the instructions: a refused play still says why, because a card that comes back with no explanation reads as a bug rather than a hint.</p>
+  <h2 class="sec">The table</h2>
+    <div class="feats">
+      <div class="feat">
+        <h4>One board, the whole screen</h4>
+        <p>No menus to play from. Your hand fans along the bottom, ranks sit in perspective above it, and
+          every question the engine asks is answered by touching the board itself.</p>
       </div>
-    </details>
-
-    <details class="rel">
-      <summary>
-        <span class="chip">0.31.4</span>
-        <span class="rel-title">The opening hand, kept or turned in</span>
-      </summary>
-      <div class="rel-body"><p>The deal stops on itself now. Seven cards are on the table and the game waits to be told
-    whether they stay: Keep starts turn one with them, Mulligan shuffles them back and deals seven
-    again.</p><p>The rule is the London mulligan as it is played - the first turn-in is free and keeps seven,
-    each one after keeps a card fewer, paid by putting cards on the bottom of the library, chosen
-    rather than taken. The floor is one card: the last offer says so, and no mulligan will leave you
-    holding nothing.</p><p>The screen is the arena's own: a plum scrim over the board, the hand across the middle at the
-    size the window allows, the count of mulligans taken, and the cards waiting to be tapped when
-    some are owed to the bottom.</p></div>
-    </details>
-
-    <details class="rel">
-      <summary>
-        <span class="chip">0.31.3</span>
-        <span class="rel-title">The deck preview, restyled as the arena</span>
-      </summary>
-      <div class="rel-body"><p>The screen before a game wears the board's clothes now: a plum mat under framed translucent panels, gold section headers over a fading rule, the commander as a hero row with a gold-framed thumbnail, a quantity only when there is more than one, set and number at the end, and a breathing blue Play button.</p>
-    <p>The empty band at the top is gone rather than filled. The title, the deck's name and Close moved into the head of the side panel, the list runs the full height, and one inset pass per screen carries the bars, the cutout and the left and right gesture strips, with a 20dp floor at every edge for the phones whose camera sits under the glass and reports no cutout at all. The list fades at both ends and the panel's middle scrolls, so the pre-cache button stops being the thing that falls off the bottom.</p>
-    <p>Two bugs on the way: a commander deck said "commander" twice, once for the format and once for the board, and the right panel clipped its own content. The layout is the same in either orientation, side by side when the window is wide and stacked when it is not.</p></div>
-    </details>
-
-    <details class="rel" open>
-      <summary>
-        <span class="chip">0.31.2</span>
-        <span class="rel-title">A land is played by the rules, not by the offer</span>
-      </summary>
-      <div class="rel-body"><p>A dragged land was told it could not be played while the dock's own Play land button played the same land a second later. The drag was judged against the list the seat offered at the moment it was asked; lands now go down whenever the engine's own land count still allows one, and the offer stops being the rule for them. The hand also became one gesture over the row instead of one per overlapping card.</p></div>
-    </details>
-
+      <div class="feat">
+        <h4>Your piles where your hands are</h4>
+        <p>Deck bottom left with the life total beside it, graveyard and command zone in the near corner,
+          the opponent's piles in the far one. The phase rides in one pill, the stack in another.</p>
+      </div>
+      <div class="feat">
+        <h4>Cards that look like cards</h4>
+        <p>Printing-specific art from Scryfall, foils marked, tokens drawn as tokens. Images are cached, so a
+          game after the first one needs no network at all.</p>
+      </div>
+      <div class="feat">
+        <h4>Refusals in plain words</h4>
+        <p>A play the engine will not take comes back with the engine's reason, not a guess. Nothing is
+          pre-judged by the screen; the table decides and then says why.</p>
+      </div>
+    </div>
   
-    <details class="rel" open>
-      <summary>
-        <span class="chip">0.31.1</span>
-        <span class="rel-title">A drag out of the hand lands</span>
-      </summary>
-      <div class="rel-body"><p>Playing a card is a drag - you pull it out of the hand and let go over your half - and the drag
-was the thing that did not work. The drop was decided by arithmetic about the board: your half of the
-screen, down to a hand band guessed at 96dp from the bottom. A card lifted out of the hand and let go
-again landed in the strip that arithmetic still called the hand, so it went nowhere and said nothing,
-which is what "I cannot even play a basic land" looks like from the outside.</p>
-<p>The line a card has to cross is the hand's own top edge now, measured by the hand itself in the
-same coordinates your finger is read in, or a finger's worth of lift above wherever in the fan you
-picked it up. Either one counts, so it does not matter whether you grab a card by its title or its
-bottom edge: carry it up and let go, and it goes down. Playable cards glow and lift, the dock says
-"Release to play it" while the card is clear of the hand, and a card dragged back down is still a card
-put back.</p>
-<p>The dock's own Play land / Cast button works again as well. It was grey for every card in every
-game, because nothing ever set the card that button acts on and a touch on a card in hand only opened
-it. A touch now picks the card up as well as opening it, so the button carries the card's name and
-plays it from there - a second door for a card you have already looked at. A land that cannot go down
-says why rather than quietly showing you its picture.</p></div>
-    </details>
-    <details class="rel" open>
-      <summary>
-        <span class="chip">0.31.0</span>
-        <span class="rel-title">One board</span>
-      </summary>
-      <div class="rel-body"><p>The switch in the top bar is gone. Battle Mode has one board now: the draft's, the one that has
-been the default since 0.30.2 and the one every card, pile and rank on it was rebuilt for. The old
-three-lane table, its seat stages, the band along the bottom you played from and the depth model behind
-them are deleted rather than left behind a toggle - nine hundred lines of a board nobody opens. What
-the switch remembered is no longer read, because the choice it offered only has one side left.</p>
-<p>The corner column is the only corner the app draws, so the arithmetic in its test is the app's:
-your library at the foot, the graveyard standing on it, the general above that, three cards and his
-word sized from the near half of the window so nothing is ever drawn over the rank beside it. An empty
-graveyard keeps its place in the column instead of the column closing up.</p>
-<p>Two faces of the same card are finally one card. Sea Gate Restoration, Bala Ged Recovery, Tangled
-Florahedron and Shatterskull Smashing are a sorcery or a creature by type with a land on the other
-face, so every one of them sat in hand looking unplayable and the land drops they were meant to be went
-unused - the AI's as well, since it decided what was a land by asking the card's types.</p>
-<p>So the seat stops guessing at all. It asks the engine's own <code>getPlayable</code> for the list of
-what it may play or cast, so a cost reducer, an alternative cost, a treasure or a modal face counts the
-way the engine counts it, and the land drop is the engine's count rather than a marker kept beside it
-that could drift. Both faces answer to their own ids, so the land you tapped for is still the card in
-your hand. 94 battle tests green, including a new one that plays a deck of two-faced lands and waits
-for the land face to actually arrive on the table.</p></div>
-    </details>
-    <details class="rel" open>
-      <summary>
-        <span class="chip">0.30.3</span>
-        <span class="rel-title">An arena on the draft board</span>
-      </summary>
-      <div class="rel-body"><p>0.30.3 is the draft board wearing a restyle, five rounds of it, over the board rather than in
-place of the table. The playmat runs plum to maroon with dark veins, the midline seam is brighter and
-breathes, and each seat carries its colour on the edge of its cards: yours blue, theirs red, a card you
-can act on lit cyan and lifted in the hand. Lands and artifacts of one name merge into a card with a
-count badge, as Arena does it; creatures never merge, and a tap on a merged card goes to an untapped
-copy. A rank counts tapped cards wider so a rank of tapped lands stops overflowing, and the life orbs
-are a ring in the seat's colour with the total inside. Your general wears a gold edge.</p>
-<p>The command zone became a framed column at the left edge of each seat, drawn flat over the tilt so
-it can never be clipped: your library at the foot, then the graveyard, then the general nearest the
-midline, and theirs hanging from the top-left the same way. The slot keeps its place when the general
-is on the battlefield and shows its tax as a badge. With the draft board on, the board is the whole
-screen and the top bar floats over it rather than holding a row.</p>
-<p>Playing a card from the hand is a drag on either board now: the card follows your finger, its slot
-fades, your half of the table lights up and letting go is the play. A tap only opens the card, except
-in an instant window, where a drag answers. Cards drop onto the table on a spring, playable cards
-breathe in the hand, the hand re-fans as it changes, and a permanent that dies scorches to char and
-its ash curves into that seat's graveyard.</p>
-<p>Two of those needed the engine rather than a guess. Deaths come from a watcher that records every
-permanent that went to a graveyard, so a bounce or an exile is no longer mistaken for a death; and the
-tax badge reads the commander play count the engine itself charges from, after finding that the event
-it had been counted on is never raised in this port.</p></div>
-    </details>
-    <details class="rel" open>
-      <summary>
-        <span class="chip">0.30.2</span>
-        <span class="rel-title">one phase pill, corners that hold what they hold, the draft first</span>
-      </summary>
-      <div class="rel-body"><p>The phase rail is gone: five segments that shifted the whole bar every time the turn moved
-into the next phase are now one pill of a fixed size whose word changes, with every slot around
-it fixed too.</p>
-<p>The pile corners are measured for everything standing in them - the graveyard and exile chips
-were drawing over the lands lane, and on the draft board the deck came up under the general's
-card. Deck, general and rank now have a place of their own.</p>
-<p>And the draft board is the default, once: a phone that had "table" saved opens on the draft
-and remembers its own choice from then on.</p></div>
-    </details>
-    <details class="rel" open>
-      <summary>
-        <span class="chip">0.30.1</span>
-        <span class="rel-title">the board that was working, back</span>
-      </summary>
-      <div class="rel-body"><p>0.30.0 came up wrong on the phone - the table with no cards on it, the draft with
-nothing but hands and its information out of place - so all of its board work is reverted:
-the measured sizes, the command zone folded into the back rank, the tap that only opened
-a card, the bar across the top, and the turn-one draw that came with them. What is in this
-package is 0.29.0's board, the one that was seen to work, with the version raised so it
-installs over 0.30.0.</p>
-<p>The pieces worth keeping come back one at a time, each one watchable on the phone before
-the next goes in.</p></div>
-    </details>
-    <details class="rel">
-      <summary>
-        <span class="chip">0.30.0</span>
-        <span class="rel-title">A board measured to the screen, a tap that only reads</span>
-      </summary>
-      <div class="rel-body"><p>0.30.0 is the draft board grown up. Every size on it was written down for one phone - a 72dp
-column for the command zone, 40dp libraries, a 64dp card in the hand - so on a short landscape
-window the gutter ate a fifth of the width and on a wide one the board floated in the middle of
-nothing. The hand, the pips, the libraries, the spacing and the lift that plays a card are now
-shares of the window, bounded at both ends: a short screen still shows a card, a tablet gets a
-table rather than a bigger hand.</p>
-<p>The command zone went with it. Your general is the first card of your back rank and your library
-is the last, so neither is drawn over a card any more; the row shares itself out instead of leaving
-a margin guessed for it. Their general stands at the left of their row the same way.</p>
-<p>One gesture does one thing now, on both boards. A tap opens a card whole, and the card carries
-the play - Cast, or Play land - when it can be played. A lift out of the hand plays it. Before this a
-tap on a land in your hand played it outright and a tap on an instant was the cast itself, so the
-only way to read a card was to risk playing it. The general in the command zone is played from its
-own card now, which is the only door it has.</p>
-<p>The bar along the top is a bar: on the very top edge, its height a share of the window, holding
-the far seat's life pip and nothing else. Neither seat has a portrait to draw, so the avatar disc and
-the name above the table are gone, and the number is the same pip the draft stands at the end of your
-row.</p>
-<p>And commander draws on turn one. The engine applies the two-player tournament rule, where the
-player who goes first skips the draw step of their first turn, and commander counts as two-player as
-far as it is concerned. A commander table does not play that way, so every seat draws.</p></div>
-    </details>
-    <details class="rel">
-      <summary>
-        <span class="chip">0.29.0</span>
-        <span class="rel-title">The right opponent, and the bar out of the way</span>
-      </summary>
-      <div class="rel-body"><p>0.29.0 is two fixes and one addition. The seat across the table is now built for the format your
-deck declares: hand it a commander deck and it sits down with a hundred-card singleton deck of its
-own, general in the command zone and all; hand it sixty cards and it answers with sixty. Before
-this, one fixed sixty-card deck was seated whatever arrived, so a commander deck played a game of
-forty life and a command zone against an opponent who had neither.</p>
-<p>The turn and phase bar has left the strip under the top bar. It is a compact pill on the right
-of the centre row now, over the one band of the table that holds no cards, and the board has the
-height it was spending. Your life total still rides in it, except while the draft is drawing its
-own orbs at the ends of the row.</p>
-<p>And the draft has a command zone: your general stands at the left of your back rank, breathing
-when the engine says it can be cast, and a tap on it casts it. The opponent's general stands at
-theirs, so a commander game looks like one.</p></div>
-    </details>
-    <details class="rel">
-      <summary>
-        <span class="chip">0.28.0</span>
-        <span class="rel-title">A second table, behind a switch</span>
-      </summary>
-      <div class="rel-body"><p>0.28.0 is a draft of the board that did not come from this app, kept beside the table rather than
-put in its place. One real perspective plane with the cards laid out flat inside it, a purple
-playmat, a glowing midline, two ranks a side, life orbs at the edges and a fanned hand. It is a
-different board and not a restyled one: no lane along the bottom, no card sheet on a long press, no
-dragging a card out of the hand and onto the table.</p>
-<p>So it is a switch in the top bar, reading Table or Draft, and it remembers where it was left.
-Turned on, the draft draws the same game: the same permanents, tapped where they are tapped and lit
-where the table is asking a question, and a tap on either board answers through the same code. The
-game is untouched; only the hand that deals it out differs, which is the point of having both for a
-while.</p>
-<p>One correction had to be made before the two could be compared. The draft hinges its plane at
-the middle, and a middle hinge draws the board at nine tenths of the height it was given: at forty
-degrees and a far edge at four fifths, a tenth of the table is a band of nothing above it. Hinged at
-the near edge instead, which is also the edge that has to stay on the bottom of the screen, every
-rank fills its slot and the near edge is drawn at the size it was measured.</p></div>
-    </details>
-    <details class="rel">
-      <summary>
-        <span class="chip">0.27.0</span>
-        <span class="rel-title">The table owns the whole screen</span>
-      </summary>
-      <div class="rel-body"><p>0.27.0 is about the space above the cards. The app's own title bar used to stay up over the board
-while a game was on, and the board's top bar still reserved the status bar's inset even though the
-bars are hidden, which together was a quarter inch of nothing above Log and Leave. The title bar
-belongs to the lobby; it goes as soon as the cards are out, and the top bar now keeps clear of the
-cutout only.</p>
-<p>The opponent's side was also the small half of the table. Half the board's layout draws as a
-little less than half the screen, because the far half is further away and draws shorter, so an even
-split gives them their share of the top. The far edge is drawn at seven eighths rather than four
-fifths and the lean is twenty degrees rather than twenty-two: still a table you are sitting at,
-without their lands and artifacts squeezed into slivers. The band along the bottom takes a quarter of
-the height and the top bar is 36dp, so the two halves are what has the room.</p></div>
-    </details>
-    <details class="rel">
-      <summary>
-        <span class="chip">0.26.0</span>
-        <span class="rel-title">One table, leaning away from you</span>
-      </summary>
-      <div class="rel-body"><p>0.26.0 is about where things are. The board used to be two halves that each leaned about their own
-middle, which is two planes rather than one: their half tilted toward you as much as yours tilted
-away, so their board read as if it were lying on your side of the table. It is one plane now,
-leaning away about its near edge. The edge in front of you is drawn at the size it is measured, the
-far edge at four fifths of that, and the eye's distance is worked out from those two numbers. Both
-seats are laid out on the one plane, so their board is further away because it is further away.</p>
-<p>Your side is the row you sit at and the rank in front of it. The deck is in the near left corner
-drawn as card backs with the count of what is left on top, and the graveyard is stacked directly
-over it. The lands are in the row along the bottom between the deck and your hand, your hand is
-fanned in the middle of the screen, and your artifacts and enchantments are in the same row to the
-right of it. In front of that row, filling your half up to the middle of the table, is your front
-rank: creatures, planeswalkers and battles, at the largest size the height allows.</p>
-<p>Theirs is the same shape seen from across the table. Their lands and artifacts run along their own
-back edge, their hand is face down between them, and their front rank faces yours across the midline,
-all of it drawn smaller and higher because it is further off.</p>
-<p>The band along the bottom no longer comes and goes with your hand, because it is not only your hand
-any more: a row with a deck and a graveyard in it stays where it is. The one panel that asks a
-question stands over the near right corner of the table instead of taking a row, and the rank behind
-it keeps clear of it rather than hiding underneath.</p></div>
-    </details>
-    <details class="rel">
-      <summary>
-        <span class="chip">0.25.0</span>
-        <span class="rel-title">Cards that were never missing</span>
-      </summary>
-      <div class="rel-body"><p>0.25.0 fixes a refusal rather than a gap. The pre-game check named cards the engine cannot build,
-and some of those names were the check's fault. The sets register plenty of cards under the
-plain-letter spelling, while DeckForge sends the name as Scryfall prints it, marks and all, so
-"Hamato Ninpō" did not match "Hamato Ninpo" and a card the engine implements was reported as
-missing. Names are now compared with the accent taken off both sides, so "Lim-Dûl's Vault" and
-"Lim-Dul's Vault" are one card, and so are "Æther Vial" and "Aether Vial".</p>
-<p>The pool itself was already whole and is still current: the sets are XMage's as of November 2026,
-592 of them, 94,263 printings, none of which fail to build.</p></div>
-    </details>
-    <details class="rel">
-      <summary>
-        <span class="chip chip--none">history</span>
-        <span class="rel-title">Upright to choose, sideways to play</span>
-      </summary>
-      <div class="rel-body"><p>0.25.0 puts the phone the right way up for each half of the job. The decklist is a column of
-cards, so the menu is portrait: the deck's name and its pictures at the top, the whole list down the
-middle, and Play under a thumb. Pressing it turns the phone and hands over to the table, which is
-sideways because two halves and a hand need the long side of the screen. Leaving a game turns it
-back.</p>
-<p>The turn over is not a cut. The deck's cards riffle off the stack, the last one grows until it is
-the whole screen, and it crossfades into the table, which is already being dealt underneath it. The
-back of that card is drawn rather than downloaded, so the animation starts on the tap instead of
-waiting on a network.</p>
-<p>The game moves too. Cards drop into their slots and the hand is dealt one card after another.
-A tapped permanent rotates and shrinks into its slot rather than jumping. Life counts to its new
-total and the disc knocks as it changes. A spell slides onto the stack, the phase rail lights the
-phase being played with a wash of brass, and every new turn announces itself. Everything the table
-is asking you to pick breathes, so a legal target can be found on a full board.</p></div>
-    </details>
-    <details class="rel">
-      <summary>
-        <span class="chip chip--none">history</span>
-        <span class="rel-title">The table</span>
-      </summary>
-      <div class="rel-body"><p>The table is the screen Arena taught us to expect. It is landscape, and it is a table: their half
-across from you, yours in front, creatures nearest the middle where combat happens, the decks and
-the graveyards in the corners, and your hand with the cards you can actually play lit and the rest
-left quiet.</p>
-<p>A card is played the way a card is played. Drag it out of your hand; while it is under your
-finger the card you would be playing is drawn at table size, and your own half lights up if it can
-be played there. Let go over your half and it is played, let go anywhere else and it slides back
-into your hand with a line at the bottom saying what is missing. Tapping a card no longer plays it,
-because tapping is how you read.</p>
-<p>One tap on any card, in hand or on the table, puts the card itself up on the right at the size it
-is printed to be read, and a tap anywhere puts it away again. No dialog, no separate oracle panel:
-the printed text is the text.</p>
-<p>The dock in the corner only appears when the engine wants something, and it asks in a sentence.
-Questions better answered by touching the table say so and get out of the way. Tapped permanents
-turn a quarter turn, creatures carry their power and toughness, tokens are marked, and the strip
-between the halves is the turn's phases, or the stack when something is on it.</p></div>
-    </details>
-    <details class="rel">
-      <summary>
-        <span class="chip chip--none">history</span>
-        <span class="rel-title">Before the game</span>
-      </summary>
-      <div class="rel-body"><p>A deck used to be dealt the moment it arrived. Now there is a lobby. It checks the deck against
-the cards this phone can build, and while it does it says so: the name of the card it is on, how
-many of how many, and a bar that moves. Anything the engine cannot build is listed by name with a
-reason, instead of the deck quietly arriving with holes in it.</p>
-<p>Then the decklist, in full, with the sideboard and the commander, and the number of pictures it
-will need. Pressing on asks for those pictures ahead of time: every card at its printing, the
-illustration as well as the whole card, the tokens the deck's own wording implies, and the other
-seat's deck, with progress on screen while it runs. The first game therefore starts with pictures
-already on disk rather than during the first turn.</p></div>
-    </details>
-    <details class="rel">
-      <summary>
-        <span class="chip">0.16.0</span>
-        <span class="rel-title">One land a turn</span>
-      </summary>
-      <div class="rel-body"><p>0.16.0 fixes a bug worth naming. A land drop could be used twice in a turn, which is how a
-Mountain and an Exotic Orchard both appeared on turn one. The seat now asks the engine's own count
-of land drops as well as its own marker, and only plays a land the engine offered it in that main
-phase. A test plays an all-lands deck turn after turn and calls a second land directly, the way the
-phone did.</p></div>
-    </details>
-    <details class="rel">
-      <summary>
-        <span class="chip chip--none">history</span>
-        <span class="rel-title">The pictures</span>
-      </summary>
-      <div class="rel-body"><p>Card art comes from Scryfall, once. Every card in the deck is resolved to its printing and its
-name, and both the whole card and its illustration are fetched while the game is being dealt, a
-few at a time and spaced out. They are written to a small index on disk with the pictures
-themselves, so the second game with the same deck asks the network for nothing at all.</p>
-<p>Tokens are fetched ahead of time too, by reading the deck's own wording: a card that says it
-creates a 1/1 white Soldier makes "Soldier" into a warm-up request before the token exists. A
-token nobody predicted still gets its picture the moment it appears, and is remembered after
-that.</p>
-<p>Nothing about a game depends on the network. Pictures arrive; the table plays either way.</p></div>
-    </details>
-    <details class="rel">
-      <summary>
-        <span class="chip chip--none">history</span>
-        <span class="rel-title">What the table already does</span>
-      </summary>
-      <div class="rel-body"><p>More than one creature can block the same attacker, and the AI piles on by itself when that is
-the only way to kill something bigger than anything it owns. Instants are cast at instant speed.
-A deck that arrives with a commander is played as a commander game: forty life, the general in
-the command zone, and its tax tracked by the engine.</p>
-
-
-<p>Installing it from a browser means allowing your browser to install unknown apps. DeckForge
-can do the same thing itself, from the deck menu, and checks the download against this page's
-checksum and signing key before handing it to Android.</p>
-<p>Both apps are signed with the same key on purpose: that is how DeckForge knows the app that
-answers <code>com.soharuda.deckforge.battle.action.PLAY</code> is ours and not an impostor.</p>
-<p>SHA-256 of the APK: <code>362da4655db8018c8b59f0f473005158cc4c989676ef4b1c8d9cfdf842b95b55</code></p></div>
-    </details>
-
+  <h2 class="sec">Playing a turn</h2>
+    <div class="feats">
+      <div class="feat">
+        <h4>Lift a card to cast it</h4>
+        <p>Drag a card out of the hand, or lift it and let go. Lands are played the same way. Targets, modes
+          and X all ask on the board, in the order the spell wants them.</p>
+      </div>
+      <div class="feat">
+        <h4>Tap abilities that actually work</h4>
+        <p>Tap a permanent and the dock offers what the engine allows it to do right now, in the card's own
+          words: a fetchland searches, shuffles and puts the land in tapped. Mana is still paid for you.</p>
+      </div>
+      <div class="feat">
+        <h4>Combat you can see</h4>
+        <p>Creatures that can attack breathe blue; the ones you have picked turn amber. Blocks are offered as
+          pairs. First strike, double strike and deathtouch resolve the way they should.</p>
+      </div>
+      <div class="feat">
+        <h4>End turn, or skip a step</h4>
+        <p>One button ends the turn wherever the table is asking, and a second skips just this step: no
+          attackers, no blocks, priority passed.</p>
+      </div>
+    </div>
+  
+  <h2 class="sec">Decks and formats</h2>
+    <div class="feats">
+      <div class="feat wide">
+        <h4>It plays the deck in your binder</h4>
+        <p>DeckForge hands Battle Mode the deck as built: main deck, commander, sideboard, printing, foil.
+          <b>Commander</b> decks are played at 40 life with a general in the command zone that can be recast
+          with its tax, and <b>60-card</b> decks (Modern, casual) at 20. The opponent builds its own deck from
+          the format of yours, so a commander deck meets a commander deck.</p>
+      </div>
+      <div class="feat">
+        <h4>London mulligan</h4>
+        <p>Take a free first mulligan, then keep seven and put back one per mulligan taken, chosen together
+          rather than one card at a time.</p>
+      </div>
+      <div class="feat">
+        <h4>Rules from the source</h4>
+        <p>The engine is a port of XMage's rules core: layers, replacement effects, cost payment, triggers,
+          state-based actions. Cards the port has not finished are listed before a game starts.</p>
+      </div>
+    </div>
+  
+  <h2 class="sec">Installing</h2>
+    <p class="lede">Battle Mode is a separate app that DeckForge launches, so your deck crosses over
+      without leaving the phone. Tap <b>Battle mode</b> in a deck and DeckForge checks this page, downloads
+      the package, verifies its size, checksum and signing certificate, and installs it. Updates arrive the
+      same way; your decks and settings stay put.</p>
+    <p class="note-line">This copy is signed with DeckForge's own key, so a package from anywhere else will
+      not install over it.</p>
+  
   <footer>
-    <h2>Installing</h2>
-    <p>From a browser, allow it to install unknown apps when Android asks. DeckForge can do the same
-    job itself from the deck menu, and checks the download against this page's checksum and signing
-    key before handing it to Android.</p>
-    <p>Both apps are signed with the same key on purpose: that is how DeckForge knows the app that
-    answers <code>com.soharuda.deckforge.battle.action.PLAY</code> is ours and not an impostor.</p>
-    <p>SHA-256 of the APK <span class="key">362da4655db8018c8b59f0f473005158cc4c989676ef4b1c8d9cfdf842b95b55</span></p>
-    <div class="seats"><span class="seat me"></span><span class="seat them"></span></div>
+    <div class="seats">
+      <span class="seat me">you</span>
+      <span class="seat them">them</span>
+    </div>
+    <p class="key">Latest package</p>
+    <p class="key" id="sha">…</p>
+    <p class="note-line">Checksum is read from <code>latest.json</code> and compared by the app before it
+      installs anything.</p>
   </footer>
-
 </div>
+
+<script>
+  // Everything about the release is read from latest.json, the same file DeckForge's installer reads,
+  // so the page can never advertise a version the app would not fetch.
+  (function () {
+    var btn = document.getElementById('download');
+    var ver = document.getElementById('ver');
+    var orbVer = document.getElementById('orb-ver');
+    var orbSize = document.getElementById('orb-size');
+    var sha = document.getElementById('sha');
+    var err = document.getElementById('err');
+
+    function fail(reason) {
+      err.hidden = false;
+      err.textContent = 'Could not read the release file (' + reason + '). The package itself is at latest.json.';
+      ver.textContent = 'unavailable';
+      orbVer.textContent = '—';
+      orbSize.textContent = '—';
+      btn.href = 'latest.json';
+      btn.setAttribute('aria-disabled', 'true');
+    }
+
+    function mb(bytes) {
+      if (!bytes) return '—';
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    var url = 'latest.json?v=' + Date.now();
+    fetch(url, { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (rel) {
+        if (!rel || !rel.apk) return fail('no package named');
+        btn.href = rel.apk;
+        btn.removeAttribute('aria-disabled');
+        ver.textContent = rel.versionName || '';
+        orbVer.textContent = rel.versionName || '—';
+        orbSize.textContent = mb(rel.size);
+        sha.textContent = rel.sha256 || '—';
+      })
+      .catch(function (e) { fail(e && e.message ? e.message : 'no answer'); });
+  })();
+</script>
 </body>
 </html>

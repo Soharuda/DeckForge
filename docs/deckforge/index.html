@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeckForge</title>
+<meta name="description" content="DeckForge is an offline-first Magic: The Gathering deck builder: your binders, your decks, your printings, and a tabletop that plays the deck you own.">
+<style>
+
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    color-scheme: dark;
+    --parch: #efe6d8;
+    --muted: #ab9dbd;
+    --brass: #e8b35a;
+    --brass-lo: #b98736;
+    --line: rgba(232,179,90,.26);
+    --panel: rgba(255,255,255,.045);
+    --panel-2: rgba(255,255,255,.02);
+    --me: #5c8bea;
+    --them: #d8402f;
+    --seam: #e0301e;
+    --radius: 14px;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  html { background: #140e1f; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    color: var(--parch);
+    background:
+      radial-gradient(120% 55% at 50% -5%, rgba(224,48,30,.13), transparent 62%),
+      radial-gradient(95% 45% at 50% 102%, rgba(92,139,234,.12), transparent 60%),
+      repeating-linear-gradient(118deg, rgba(255,255,255,.017) 0 2px, transparent 2px 26px),
+      linear-gradient(168deg, #2b2040 0%, #241a36 42%, #1a1228 72%, #140e1f 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(60% 40% at 12% 8%, rgba(0,0,0,.38), transparent 70%),
+      radial-gradient(55% 35% at 88% 92%, rgba(0,0,0,.42), transparent 70%);
+  }
+  .wrap { position: relative; max-width: 47rem; margin: 0 auto; padding: 0 1.25rem 4.5rem; }
+
+  header.hero { padding: 3.2rem 0 2.2rem; position: relative; }
+  .fan { position: absolute; top: 1.1rem; right: -1rem; width: 12.5rem; height: 8rem; opacity: .5; }
+  .eyebrow {
+    font: 600 .72rem/1 var(--sans);
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin: 0 0 .9rem;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.6rem, 11vw, 4.1rem);
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: .01em;
+    margin: 0 0 .7rem;
+    color: #fbf4e6;
+    text-shadow: 0 1px 0 rgba(0,0,0,.5), 0 0 34px rgba(232,179,90,.18);
+  }
+  .lede { margin: 0; max-width: 34rem; color: var(--parch); font-size: 1.04rem; }
+  .seam {
+    height: 2px; margin: 1.9rem 0 0;
+    background: linear-gradient(90deg, transparent, var(--seam) 18%, #ff6a4a 50%, var(--seam) 82%, transparent);
+    box-shadow: 0 0 18px 2px rgba(224,48,30,.55);
+    opacity: .85;
+  }
+
+  .get { display: flex; flex-wrap: wrap; align-items: center; gap: 1.1rem; margin-top: 1.9rem; }
+  .btn {
+    display: inline-flex; align-items: baseline; gap: .55rem;
+    padding: .82rem 1.35rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #f0c778, var(--brass) 55%, #c9963f);
+    color: #241a12;
+    font-weight: 700;
+    font-size: 1.02rem;
+    text-decoration: none;
+    border: 1px solid #f4d79b;
+    box-shadow: 0 8px 24px rgba(232,179,90,.22), inset 0 1px 0 rgba(255,255,255,.55);
+  }
+  .btn:hover { filter: brightness(1.06); }
+  .btn:focus-visible, summary:focus-visible, a:focus-visible {
+    outline: 2px solid var(--brass); outline-offset: 3px;
+  }
+  .btn small { font-weight: 600; opacity: .72; font-size: .82rem; }
+  .orbs { display: flex; gap: .7rem; margin: 0; padding: 0; list-style: none; }
+  .orb {
+    width: 3.4rem; height: 3.4rem; border-radius: 50%;
+    display: grid; place-content: center; text-align: center;
+    background: radial-gradient(circle at 50% 30%, #2c2044, #150e26 70%);
+    border: 1.5px solid var(--brass-lo);
+    box-shadow: inset 0 0 12px rgba(0,0,0,.7), 0 0 0 3px rgba(232,179,90,.08);
+  }
+  .orb b { display: block; font: 700 .82rem/1.15 var(--sans); color: #ffe9b8; }
+  .orb span { display: block; font: 600 .52rem/1.3 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+  h2.sec {
+    font: 600 .72rem/1 var(--sans);
+    letter-spacing: .2em; text-transform: uppercase;
+    color: var(--muted);
+    margin: 2.6rem 0 .9rem;
+    display: flex; align-items: center; gap: .8rem;
+  }
+  h2.sec::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  .rel, .star {
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid rgba(255,255,255,.07);
+    border-left: 2px solid var(--brass-lo);
+    border-radius: var(--radius);
+    padding: 1.15rem 1.25rem 1.3rem;
+    margin-bottom: .9rem;
+  }
+  .star {
+    border-left-color: var(--brass);
+    box-shadow: 0 18px 50px -28px rgba(232,179,90,.5), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .star h3 {
+    font-family: var(--serif); font-weight: 600; font-size: clamp(1.35rem, 4.6vw, 1.75rem);
+    line-height: 1.2; margin: .55rem 0 .8rem; color: #fbf4e6;
+  }
+  .rel-title {
+    font-family: var(--serif); font-size: 1.16rem; font-weight: 600; color: #f7eedf;
+  }
+  .chip {
+    display: inline-block;
+    font: 700 .68rem/1 var(--mono);
+    letter-spacing: .06em;
+    color: #241a12;
+    background: linear-gradient(180deg, #f0c778, #cf9c44);
+    padding: .3rem .5rem; border-radius: 6px;
+    margin-right: .6rem;
+    vertical-align: .12em;
+  }
+  .chip--none { background: rgba(255,255,255,.1); color: var(--muted); }
+  .rel p, .star p { margin: 0 0 .85rem; color: #e6dceb; }
+  .rel p:last-child, .star p:last-child { margin-bottom: 0; }
+  code {
+    font-family: var(--mono); font-size: .84em;
+    background: rgba(232,179,90,.12); color: #ffe9b8;
+    padding: .1rem .35rem; border-radius: 4px;
+    overflow-wrap: anywhere;
+  }
+
+  details.rel { padding: .2rem 1.25rem; }
+  details.rel summary {
+    cursor: pointer; list-style: none; padding: .95rem 0;
+    display: flex; align-items: center; gap: .1rem;
+  }
+  details.rel summary::-webkit-details-marker { display: none; }
+  details.rel summary::after {
+    content: ""; margin-left: auto; width: .5rem; height: .5rem;
+    border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+    transform: rotate(45deg); transition: transform .18s ease;
+  }
+  details.rel[open] summary::after { transform: rotate(-135deg); }
+  details.rel[open] { padding-bottom: 1.1rem; }
+  details.rel .rel-body { padding-top: .2rem; }
+  @media (prefers-reduced-motion: reduce) { details.rel summary::after { transition: none; } }
+
+  footer { margin-top: 2.6rem; border-top: 1px solid var(--line); padding-top: 1.4rem; }
+  footer h2 {
+    font: 600 .72rem/1 var(--sans); letter-spacing: .2em; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 .9rem;
+  }
+  footer p { margin: 0 0 .8rem; color: #dfd5e6; font-size: .95rem; }
+  .key { display: block; font-family: var(--mono); font-size: .78rem; color: var(--muted); overflow-wrap: anywhere; }
+  .seats { display: flex; gap: .5rem; margin: 1rem 0 0; }
+  .seat { flex: 1; height: 3px; border-radius: 2px; }
+  .seat.me { background: linear-gradient(90deg, transparent, var(--me)); }
+  .seat.them { background: linear-gradient(90deg, var(--them), transparent); }
+  @media (max-width: 30rem) {
+    .fan { display: none; }
+    .orbs { width: 100%; }
+  }
+
+  /* A features page: the release history is gone, which leaves room for what the thing does. */
+  .feats { display: grid; gap: .7rem; grid-template-columns: 1fr; margin: 1.1rem 0 0; }
+  @media (min-width: 40rem) { .feats { grid-template-columns: 1fr 1fr; } }
+  .feat {
+    padding: .95rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--panel-2);
+  }
+  .feat h4 {
+    margin: 0 0 .35rem;
+    font: 600 .95rem/1.3 var(--sans);
+    letter-spacing: .01em;
+    color: var(--parch);
+  }
+  .feat p { margin: 0; font-size: .82rem; line-height: 1.55; color: var(--muted); }
+  .feat.wide { grid-column: 1 / -1; }
+  .feat b { color: var(--parch); font-weight: 600; }
+  .note-line { margin: .9rem 0 0; font-size: .78rem; color: var(--muted); }
+  .note-line code { font-family: var(--mono); font-size: .74rem; color: var(--brass); }
+  .btn[aria-disabled="true"] { opacity: .55; pointer-events: none; }
+  .err { color: var(--them); font-size: .78rem; margin: .5rem 0 0; }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <svg class="fan" viewBox="0 0 200 128" aria-hidden="true">
+      <g fill="none" stroke="#e8b35a" stroke-width="1.6" opacity=".85">
+        <rect x="8" y="26" width="70" height="98" rx="7" transform="rotate(-14 43 75)" fill="#241a36"/>
+        <rect x="52" y="18" width="70" height="98" rx="7" transform="rotate(-4 87 67)" fill="#2b2040"/>
+        <rect x="96" y="14" width="70" height="98" rx="7" transform="rotate(8 131 63)" fill="#241a36"/>
+      </g>
+      <g fill="#e8b35a" opacity=".55">
+        <circle cx="87" cy="46" r="7"/>
+        <circle cx="131" cy="42" r="7"/>
+      </g>
+    </svg>
+    <p class="eyebrow">DeckForge · the deck builder</p>
+    <h1>DeckForge</h1>
+    <div class="seam"></div>
+    <p class="lede">Build the decks you actually own. Your binders, your printings, your rules - and a
+      table at the end of it that plays them.</p>
+
+    <p class="get">
+      <a class="btn" id="download" href="latest.json" aria-disabled="true">Download <small id="ver">...</small></a>
+    </p>
+    <ul class="orbs">
+      <li class="orb"><b id="orb-ver">...</b><span>version</span></li>
+      <li class="orb"><b id="orb-size">...</b><span>download</span></li>
+      <li class="orb"><b>8.0+</b><span>Android</span></li>
+    </ul>
+    <p class="note-line">Version, size and checksum are read from <code>latest.json</code> when this page opens, so
+      they cannot disagree with the file being served.</p>
+    <p class="err" id="err" hidden></p>
+  </header>
+
+  <h2 class="sec">The collection</h2>
+    <div class="feats">
+      <div class="feat">
+        <h4>Bundled card data, no connection needed</h4>
+        <p>The card database travels with the app. Searching, building, checking a deck and playing a game all
+          work with the phone in airplane mode; the network is for art and prices, not for the rules.</p>
+      </div>
+      <div class="feat">
+        <h4>Binders you can trust</h4>
+        <p>Every card you own lives in a binder, and importing one is a CSV - the export any scanner or
+          marketplace already gives you. Cards you own twice count twice.</p>
+      </div>
+      <div class="feat">
+        <h4>One card, one place</h4>
+        <p>A card in a deck is in use, so other decks see the copy that is left rather than the copy you own.
+          A deck that is short says how short, before you take it anywhere.</p>
+      </div>
+      <div class="feat">
+        <h4>Printings are part of the card</h4>
+        <p>Pick the set and the collector number you actually hold. The deck remembers it, the list shows it,
+          and the table plays that print rather than the first one it finds.</p>
+      </div>
+    </div>
+
+  <h2 class="sec">Building</h2>
+    <div class="feats">
+      <div class="feat">
+        <h4>Synergy you can check</h4>
+        <p>Suggestions come with their reasons: the oracle text that made the connection and the data behind
+          the ranking. Nothing is a black box, so a suggestion can be argued with.</p>
+      </div>
+      <div class="feat">
+        <h4>Legality per format</h4>
+        <p>Commander's hundred singleton cards and its colour identity, sixty-card constructed and its copy
+          rule: the deck is checked as it is built, not after it is finished.</p>
+      </div>
+      <div class="feat">
+        <h4>Commander, properly</h4>
+        <p>A general is chosen, the command zone is a real place, and the tax for casting it again is counted
+          by the same rules the table uses.</p>
+      </div>
+      <div class="feat">
+        <h4>Binder to deck in one step</h4>
+        <p>Start from what you own and build outwards, or paste a list and be told what of it is already in
+          the binders and what is not.</p>
+      </div>
+    </div>
+
+  <h2 class="sec">Buying what is missing</h2>
+    <div class="feats">
+      <div class="feat wide">
+        <h4>A cart, not a shopping spree</h4>
+        <p>DeckForge only ever offers to buy the cards a deck is short, and it puts them in a cart first.
+          Each line chooses its own printing - the one you want, or the cheapest that will do - and the total
+          follows the choice, so the receipt is not a surprise. Removing a line puts the card back to the
+          printing the deck asked for.</p>
+      </div>
+    </div>
+
+  <h2 class="sec">The table</h2>
+    <div class="feats">
+      <div class="feat wide">
+        <h4>Battle Mode is the other half</h4>
+        <p>A deck is not finished until it has been played. Battle Mode is a second app that takes the deck
+          you just built, prints and all, and puts it on a table against an opponent that plays by the
+          engine's rules. <a href="../battle/">Its own page is here</a>.</p>
+      </div>
+    </div>
+
+  <h2 class="sec">Sharing</h2>
+    <div class="feats">
+      <div class="feat wide">
+        <h4>A link that is the deck</h4>
+        <p>Share a deck as a link and it opens as the list, with prices and a way to hand it to the app. That
+          is what the front of this site serves.</p>
+      </div>
+    </div>
+
+  <footer>
+    <h2>Installing</h2>
+    <p>This is an Android app, installed from this page rather than from a store. Download the file, open it,
+      and allow your browser to install apps if Android asks. It is signed with one key, and every release is
+      signed with the same one, so an update installs over the previous version and keeps your binders.</p>
+    <p>Android 8.0 or newer. The download is about <b id="size-word">sixty-six megabytes</b> because the card
+      database is inside it.</p>
+    <h2 style="margin-top:1.6rem">This download</h2>
+    <p><span class="key" id="sha">computing...</span></p>
+    <div class="seats" aria-hidden="true">
+      <div class="seat me"></div>
+      <div class="seat them"></div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // One source of truth: the same file an installed app reads, so the button, the version orb and the
+  // checksum on this page cannot point at different releases.
+  (function () {
+    var btn = document.getElementById("download");
+    var ver = document.getElementById("ver");
+    var orbVer = document.getElementById("orb-ver");
+    var orbSize = document.getElementById("orb-size");
+    var sha = document.getElementById("sha");
+    var sizeWord = document.getElementById("size-word");
+    var err = document.getElementById("err");
+
+    fetch("latest.json?v=" + Date.now(), { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("latest.json answered " + r.status);
+        return r.json();
+      })
+      .then(function (rel) {
+        btn.href = rel.apk;
+        btn.removeAttribute("aria-disabled");
+        ver.textContent = rel.versionName;
+        orbVer.textContent = rel.versionName;
+        orbSize.textContent = (rel.size / 1048576).toFixed(0) + " MB";
+        sha.textContent = "SHA-256  " + rel.sha256;
+        if (rel.size) sizeWord.textContent = (rel.size / 1048576).toFixed(0) + " megabytes";
+      })
+      .catch(function (e) {
+        err.hidden = false;
+        err.textContent = "Could not read the release file (" + e.message + "). The download still works: ";
+        var a = document.createElement("a");
+        a.href = "latest.json";
+        a.textContent = "open latest.json";
+        err.appendChild(a);
+        ver.textContent = "";
+        orbVer.textContent = "?";
+        orbSize.textContent = "?";
+      });
+  })();
+</script>
+</body>
+</html>
